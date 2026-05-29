@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+/*
+  Design tokens for the Cuberto-style editorial agency layout.
+  One neo-grotesque family at multiple weights, black/white palette,
+  tight negative letter-spacing on large display type.
+*/
+@theme {
+  --color-ink: #000000;
+  --color-paper: #ffffff;
+
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+
+  /* Cuberto's two signature easing curves */
+  --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+
+  --animate-spin-slow: spin 15s linear infinite;
+  --animate-spin-icon: spin 5s linear infinite;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Reusable display-type sizing used across hero / section headings */
+.display-xl {
+  font-size: clamp(3rem, 7vw, 5.625rem);
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+.eyebrow {
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---- Pill button with rising-fill hover (recreated from the source) ---- */
+.pill {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  border-radius: 1000px;
+  isolation: isolate;
+  transition: transform 0.3s var(--ease-reveal);
+}
+.pill:hover {
+  transform: translateY(-2px);
+}
+.pill__ring {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border: 1px solid currentColor;
+  border-radius: 1000px;
+  pointer-events: none;
+}
+.pill__fill {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 1000px;
+}
+.pill__fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  top: 100%;
+  background: currentColor;
+  border-radius: 50% 50% 0 0;
+  transition: top 0.5s cubic-bezier(0.4, 0, 0, 1),
+    border-radius 0.5s cubic-bezier(0.4, 0, 0, 1);
+}
+.pill:hover .pill__fill::before {
+  top: -10%;
+  border-radius: 0;
+}
+.pill__label {
+  position: relative;
+  z-index: 2;
+  display: block;
+  overflow: hidden;
+}
+.pill__label span {
+  display: block;
+  transition: transform 0.6s var(--ease-reveal),
+    color 0.3s ease;
+}
+/* On hover the text swaps to the inverse color (over the filled background) */
+.pill--ink:hover .pill__label span {
+  color: var(--color-paper);
+}
+.pill--paper:hover .pill__label span {
+  color: var(--color-ink);
+}
+
+/* ---- Staggered word reveal used on the hero / section headings ---- */
+@keyframes word-rise {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.reveal-word {
+  display: inline-block;
+  overflow: clip;
+  vertical-align: top;
+  margin: -0.18em;
+}
+.reveal-word > span {
+  display: inline-block;
+  padding: 0.18em;
+  transform: translateY(110%);
+  animation: word-rise 1s var(--ease-expo) forwards;
+}
+
+/* ---- Slow background pan for the "Have an idea?" CTA placeholder ---- */
+@keyframes idea-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* ---- Animated stroke for the "flexible terms" benefit icon ---- */
+@keyframes icon-stroke {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dashoffset: 160;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+.icon-stroke rect {
+  stroke-dasharray: 138 25;
+  animation: icon-stroke 5s linear infinite;
+}
+.icon-stroke rect:last-child {
+  animation-delay: 0.1s;
+  animation-direction: reverse;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
