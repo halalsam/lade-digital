@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "@/components/transition/TransitionLink";
 import PillButton from "./PillButton";
+import PlasmaWave from "@/components/PlasmaWave";
 
 const FOOTER_LINKS = [
   { label: "Services", href: "/services" },
@@ -43,10 +46,37 @@ const SOCIALS = [
   },
 ];
 
-export default function Footer() {
+// Combined CTA + footer. The CTA invites contact over a live PlasmaWave
+// background; the footer below holds contact details, navigation, and socials.
+export default function CtaFooter() {
   return (
-    <footer className="relative bg-ink py-28 text-paper">
-      <div className="mx-auto max-w-[1600px] px-6 md:px-12 lg:px-[7.5rem]">
+    <footer className="relative bg-ink text-paper">
+      {/* CTA */}
+      <section className="relative grid place-items-center overflow-hidden text-center md:min-h-[866px] py-32">
+        {/* PlasmaWave background, dimmed */}
+        <div className="pointer-events-none absolute inset-0 opacity-70">
+          <PlasmaWave />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-[1600px] px-6">
+          <h2 className="text-6xl font-light leading-none tracking-tight mix-blend-difference md:text-8xl lg:text-[7.5rem]">
+            Have
+            <br />
+            an idea?
+          </h2>
+          <div className="mt-8 flex justify-center">
+            <PillButton
+              href="/contacts"
+              label="Tell us"
+              variant="paper"
+              size="lg"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <div className="relative z-10 mx-auto max-w-[1600px] px-6 pb-28 md:px-12 lg:px-[7.5rem]">
         <div className="grid gap-16 lg:grid-cols-2">
           {/* Contact blocks */}
           <div className="flex flex-col gap-12 sm:flex-row sm:gap-24">

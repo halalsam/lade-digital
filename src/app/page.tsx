@@ -9,8 +9,7 @@ import AboutSummary from "@/components/home/AboutSummary";
 import FeaturedProjects from "@/components/home/FeaturedProjects";
 import ServicesPreview from "@/components/home/ServicesPreview";
 import BlogPreview from "@/components/home/BlogPreview";
-import HaveAnIdea from "@/components/project/HaveAnIdea";
-import Footer from "@/components/shared/Footer";
+import CtaFooter from "@/components/shared/CtaFooter";
 import RevealScale from "@/components/shared/RevealScale";
 
 export const metadata: Metadata = {
@@ -53,17 +52,12 @@ export default function HomePage() {
           </Section>
         </Reveal>
         <Reveal>
-          <Section variant="overlap" bg="var(--color-ink)" className="pb-30 text-paper">
+          <Section variant="overlap" bg="var(--color-ink)" className=" text-paper">
             <BlogPreview />
           </Section>
         </Reveal>
-        <Reveal>
-          <HaveAnIdea />
-        </Reveal>
       </main>
-      <Reveal>
-        <Footer />
-      </Reveal>
+      <CtaFooter />
     </>
   );
 }

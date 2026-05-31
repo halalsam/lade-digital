@@ -37,7 +37,12 @@ export default function RevealText({
   if (ease !== undefined) overrides["--word-ease"] = ease;
 
   return (
-    <Tag aria-label={text} className={className} style={overrides as CSSProperties}>
+    <Tag
+      aria-label={text}
+      data-cursor="-blend -scale"
+      className={className}
+      style={overrides as CSSProperties}
+    >
       {words.map((word, i) => (
         <Fragment key={`${word}-${i}`}>
           <span aria-hidden className="reveal-word">

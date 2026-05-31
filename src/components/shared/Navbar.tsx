@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties } from "react";
+import { usePathname } from "next/navigation";
 import Link from "@/components/transition/TransitionLink";
 import Logo from "./Logo";
+import { HoverText, hoverTargetClass } from "./HoverButton";
 
 const NAV_LINKS = [
   { label: "Services", href: "/services" },
@@ -21,7 +23,14 @@ type NavbarProps = {
 
 export default function Navbar({ duration, ease }: NavbarProps = {}) {
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  // A link is active if it matches the current path exactly, or is a parent
+  // segment of it (e.g. /projects highlighted while on /projects/aurora).
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
   // Only emit override vars when given, so unset props fall through to the
   // global :root defaults. A bare number is read as seconds (matching nav-delay).
@@ -31,8 +40,22 @@ export default function Navbar({ duration, ease }: NavbarProps = {}) {
       typeof duration === "number" ? `${duration}s` : duration;
   if (ease !== undefined) (entrance as Record<string, string>)["--nav-ease"] = ease;
 
+  // Hide the bar when scrolling down past a small threshold, reveal it the
+  // moment the user scrolls back up. Always shown near the top of the page.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 40);
+
+      const delta = y - lastY;
+      if (y < 80) {
+        setHidden(false);
+      } else if (Math.abs(delta) > 6) {
+        setHidden(delta > 0);
+      }
+      lastY = y;
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -49,7 +72,13 @@ export default function Navbar({ duration, ease }: NavbarProps = {}) {
   return (
     <header style={entrance}>
       <div
-        className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+        style={{
+          transition:
+            "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, backdrop-filter 0.3s ease",
+          transform: hidden && !open ? "translateY(-100%)" : "translateY(0)",
+          willChange: "transform",
+        }}
+        className={`fixed inset-x-0 top-0 z-50 ${
           scrolled
             ? "bg-paper/90 backdrop-blur-md backdrop-saturate-150"
             : "bg-transparent"
@@ -73,15 +102,13 @@ export default function Navbar({ duration, ease }: NavbarProps = {}) {
               <Link
                 key={link.href}
                 href={link.href}
+                data-cursor="-blend -scale"
+                aria-current={isActive(link.href) ? "page" : undefined}
                 style={{ "--nav-delay": `${0.12 + i * 0.05}s` } as CSSProperties}
-                className="nav-reveal group relative block overflow-hidden px-5 py-1.5 text-xl text-ink transition-transform duration-300 ease-reveal "
+                className={`nav-reveal overflow-hidden ${hoverTargetClass}`}
               >
-                <span className="block transition-transform duration-700 ease-reveal group-hover:translate-y-[-120%]">
-                  {link.label}
-                </span>
-                <span className="absolute left-5 top-1.5 block  translate-y-full transition-transform duration-700 ease-reveal group-hover:scale-100 scale-6``8 group-hover:translate-y-0">
-                  {link.label}
-                </span>
+                <HoverText>{link.label}</HoverText>
+             
               </Link>
             ))}
           </nav>
@@ -122,7 +149,10 @@ export default function Navbar({ duration, ease }: NavbarProps = {}) {
               key={link.href}
               href={link.href}
               onClick={() => setOpen(false)}
-              className="py-1.5 text-4xl font-medium tracking-tight text-ink"
+              aria-current={isActive(link.href) ? "page" : undefined}
+              className={`py-1.5 text-4xl font-medium tracking-tight text-ink ${
+                isActive(link.href) ? "underline underline-offset-8" : ""
+              }`}
             >
               {link.label}
             </Link>

@@ -10,6 +10,8 @@ function FeaturedCard({ project }: { project: FeaturedProject }) {
     <Link
       href={`/projects/${project.slug}`}
       aria-label={project.name}
+      data-cursor="-explore"
+      data-cursor-text="Explore"
       className="group block text-paper"
     >
       <div
@@ -21,9 +23,6 @@ function FeaturedCard({ project }: { project: FeaturedProject }) {
           className="absolute inset-0 transition-transform duration-[1.2s] ease-[var(--ease-reveal)] group-hover:scale-105"
           style={{ background: gradientFor(project.slug) }}
         />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/60 px-6 py-2 text-base uppercase tracking-wide opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
-          Explore
-        </span>
       </div>
       <p className="mt-8 max-w-[75%] text-xl leading-tight">
         <b className="font-semibold">{project.name}</b>{" "}

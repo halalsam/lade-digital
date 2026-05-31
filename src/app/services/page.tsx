@@ -6,7 +6,7 @@ import VideoShowcase from "@/components/services/VideoShowcase";
 import Solutions from "@/components/services/Solutions";
 import Benefits from "@/components/services/Benefits";
 import Reveal from "@/components/shared/Reveal";
-import Footer from "@/components/shared/Footer";
+import CtaFooter from "@/components/shared/CtaFooter";
 
 export const metadata: Metadata = {
   title: "Our Services — Going beyond what's possible",
@@ -31,7 +31,7 @@ export default function ServicesPage() {
           <Benefits />
         </Reveal>
       </main>
-      <Footer />
+      <CtaFooter />
     </>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PROJECTS, FILTERS, type Category } from "@/lib/projects";
 import ProjectCard from "./ProjectCard";
 import RevealUp from "../shared/RevealUp";
+import HoverButton from "../shared/HoverButton";
 
 type FilterId = "all" | Category;
 
@@ -21,28 +22,24 @@ export default function ProjectGrid() {
         {FILTERS.map((filter) => {
           const isActive = active === filter.id;
           return (
-            <button
-              key={filter.id}
-              type="button"
-              onClick={() => setActive(filter.id)}
-              className={`group relative px-6 py-1.5 text-2xl tracking-[0.02em] transition-opacity ${
-                isActive ? "opacity-100" : "opacity-40 hover:opacity-100"
-              }`}
-            >
-              <span className="relative block overflow-hidden">
-                <span className="block transition-transform duration-700 ease-[var(--ease-reveal)] group-hover:-translate-y-full">
-                  {filter.label}
-                </span>
-                <span className="absolute left-0 top-0 block translate-y-full transition-transform duration-700 ease-[var(--ease-reveal)] group-hover:translate-y-0">
-                  {filter.label}
-                </span>
-              </span>
+            <span key={filter.id} className="relative">
+              <HoverButton
+                onClick={() => setActive(filter.id)}
+                aria-pressed={isActive}
+                className={`text-2xl tracking-[0.02em] transition-opacity ${
+                  isActive ? "opacity-100" : "opacity-40 hover:opacity-100"
+                }`}
+              >
+                {filter.label}
+              </HoverButton>
+              {/* Active underline — outside the overflow-hidden button so it
+                  isn't clipped; animates its width from the left. */}
               <span
-                className={`absolute -bottom-0.5 left-6 right-6 h-px origin-left bg-ink transition-transform duration-500 ${
+                className={`pointer-events-none absolute -bottom-0.5 left-5 right-5 h-px origin-left bg-ink transition-transform duration-500 ${
                   isActive ? "scale-x-100" : "scale-x-0"
                 }`}
               />
-            </button>
+            </span>
           );
         })}
       </div>

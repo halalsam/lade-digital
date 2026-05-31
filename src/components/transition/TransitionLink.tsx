@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ComponentProps, MouseEvent } from "react";
+import type { ComponentProps, MouseEvent, Ref } from "react";
 import { usePageTransition } from "./TransitionProvider";
 
-type Props = ComponentProps<typeof Link>;
+type Props = ComponentProps<typeof Link> & { ref?: Ref<HTMLAnchorElement> };
 
 /**
  * Drop-in replacement for `next/link`. Internal navigations are routed through
@@ -15,7 +15,7 @@ type Props = ComponentProps<typeof Link>;
  * Adopt it anywhere by aliasing the import:
  *   import Link from "@/components/transition/TransitionLink";
  */
-export default function TransitionLink({ href, onClick, ...rest }: Props) {
+export default function TransitionLink({ href, onClick, ref, ...rest }: Props) {
   const { navigate } = usePageTransition();
   const pathname = usePathname();
 
@@ -46,5 +46,5 @@ export default function TransitionLink({ href, onClick, ...rest }: Props) {
     navigate(url);
   };
 
-  return <Link href={href} onClick={handleClick} {...rest} />;
+  return <Link ref={ref} href={href} onClick={handleClick} {...rest} />;
 }

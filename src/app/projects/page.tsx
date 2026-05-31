@@ -3,9 +3,8 @@ import Navbar from "@/components/shared/Navbar";
 import GetInTouch from "@/components/shared/GetInTouch";
 import ProjectsHero from "@/components/project/ProjectsHero";
 import ProjectGrid from "@/components/project/ProjectGrid";
-import HaveAnIdea from "@/components/project/HaveAnIdea";
 import Reveal from "@/components/shared/Reveal";
-import Footer from "@/components/shared/Footer";
+import CtaFooter from "@/components/shared/CtaFooter";
 
 export const metadata: Metadata = {
   title: "Our Projects — Bringing ideas to life",
@@ -25,11 +24,8 @@ export default function ProjectsPage() {
             <ProjectGrid />
           </Reveal>
         </section>
-        <Reveal>
-          <HaveAnIdea />
-        </Reveal>
       </main>
-      <Footer />
+      <CtaFooter />
     </>
   );
 }

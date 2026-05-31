@@ -107,64 +107,31 @@ body {
 }
 
 /* ---- Pill button with rising-fill hover (recreated from the source) ---- */
+/* React Bits "Pill Nav" hover: an expanding circle + dual sliding labels,
+   driven by a paused GSAP timeline in PillButton.tsx. The pill clips the
+   circle; the label stack clips the sliding text. */
 .pill {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   border-radius: 1000px;
   isolation: isolate;
-  transition: transform 0.3s var(--ease-reveal);
-}
-.pill:hover {
-  transform: translateY(-2px);
 }
 
 .pill__ring {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   border: 1px solid currentColor;
   border-radius: 1000px;
   pointer-events: none;
 }
-.pill__fill {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  border-radius: 1000px;
-}
-.pill__fill::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  top: 100%;
-  background: currentColor;
-  border-radius: 50% 50% 0 0;
-  transition: top 0.5s cubic-bezier(0.4, 0, 0, 1),
-    border-radius 0.5s cubic-bezier(0.4, 0, 0, 1);
-}
-.pill:hover .pill__fill::before {
-  top: -10%;
-  border-radius: 0;
-}
+/* Clips the two label copies so they slide in/out of view rather than
+   overflowing the pill. */
 .pill__label {
-  position: relative;
-  z-index: 2;
-  display: block;
   overflow: hidden;
-}
-.pill__label span {
-  display: block;
-  transition: transform 0.6s var(--ease-reveal),
-    color 0.3s ease;
-}
-/* On hover the text swaps to the inverse color (over the filled background) */
-.pill--ink:hover .pill__label span {
-  color: var(--color-paper);
-}
-.pill--paper:hover .pill__label span {
-  color: var(--color-ink);
 }
 
 /* ---- Staggered word reveal used on the hero / section headings ---- */
@@ -438,6 +405,33 @@ html[data-reveal="wait"] .nav-reveal {
   color: var(--color-ink);
 }
 
+/* -play: a filled WHITE disc with the icon/content in black (inverse of the
+   default ink pill). Used by the showreel's play-button cursor. */
+.cb-cursor.-play.-active .cb-cursor-inner {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.cb-cursor.-play.-active .cb-cursor-content {
+  color: var(--color-ink);
+}
+
+/* -explore: a wide pill carrying an "Explore" label, for the featured project
+   cards. Inherits the default filled-ink / paper-text look, just sized wider
+   for the word and given the uppercase/tracked treatment the old badge had. */
+.cb-cursor.-explore.-active .cb-cursor-inner {
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.cb-cursor.-explore.-active .cb-cursor-content {
+  color: var(--color-ink);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 /* -media: a larger thumbnail frame for image/video previews. */
 .cb-cursor.-media.-active .cb-cursor-inner {
   width: 220px;
@@ -448,10 +442,30 @@ html[data-reveal="wait"] .nav-reveal {
   overflow: hidden;
 }
 
-/* -blend: invert against whatever is behind (difference blend). */
+/* -blend: invert against whatever is behind (difference blend).
+   The blend mode goes on the ROOT and the root's `contain` is dropped while
+   blending: `contain: paint`-style containment (and even layout/size in some
+   engines) isolates the element so `mix-blend-mode` has no external backdrop to
+   blend against — the disc then collapses to invisible. We also force a white,
+   fully-opaque disc (difference vs white = clean inversion; the base 0.65
+   opacity would wash it out). */
 .cb-cursor.-blend {
+  contain: none;
+  will-change: auto; /* a will-change/transform layer isolates blending → plain white */
   mix-blend-mode: difference;
-  color: #fff;
+}
+.cb-cursor.-blend .cb-cursor-inner {
+  background: #fff;
+  opacity: 1;
+  will-change: auto;
+}
+
+/* -scale: grow the plain dot a little (width/height/margin — GSAP owns the
+   transform). Pairs with -blend for a Cuberto-style hover accent. */
+.cb-cursor.-scale .cb-cursor-inner {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
 }
 
 /* Hidden: fade + collapse the body (no transform — GSAP owns it). */
