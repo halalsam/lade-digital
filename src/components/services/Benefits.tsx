@@ -1,4 +1,6 @@
 import RevealText from "../shared/RevealText";
+import RevealUp from "../shared/RevealUp";
+import Section from "../shared/Section";
 
 // --- Animated benefit icons (recreated from the source SVGs) -------------
 
@@ -111,35 +113,37 @@ const BENEFITS = [
   },
 ];
 
+// Panel chrome (rounded-top, ink bg, container, padding) lives in the
+// <Section variant="overlap"> wrapper on the services page — this is content.
 export default function Benefits() {
   return (
-    <section className="relative -mt-20 text-paper">
-      <div className="rounded-t-[80px] bg-ink pb-2 pt-36">
-        <div className="mx-auto max-w-[1600px] px-6 md:px-12 lg:px-60">
-          <RevealText
-            as="h2"
-            text="Benefits of working with us"
-            className="display-xl mb-28 block"
-          />
+    <Section variant="overlap" bg="var(--color-ink)" className="text-paper">
+      <RevealText
+        as="h2"
+        text="Benefits of working with us"
+        className="display-xl mb-28 block"
+      />
 
-          <div>
-            {BENEFITS.map((item) => (
-              <div key={item.label}>
-                <div className="mb-12 mt-24 first:mt-0 h-px w-full bg-paper/40" />
-                <div className="flex flex-col gap-8 md:flex-row md:gap-12">
-                  <div className="flex-1">{item.icon}</div>
-                  <div className="flex-1">
-                    <h3 className="eyebrow mb-4">{item.label}</h3>
-                    <p className="max-w-[500px] text-[1.625rem] leading-tight tracking-[0.02em]">
-                      {item.body}
-                    </p>
-                  </div>
-                </div>
+      <div>
+        {BENEFITS.map((item, i) => (
+          <RevealUp key={item.label}>
+            <div
+              className={`mb-12 mt-24 h-px w-full bg-paper/40 ${
+                i === 0 ? "mt-0" : ""
+              }`}
+            />
+            <div className="flex flex-col gap-8 md:flex-row md:gap-12">
+              <div className="flex-1">{item.icon}</div>
+              <div className="flex-1">
+                <h3 className="eyebrow mb-4">{item.label}</h3>
+                <p className="max-w-[500px] text-[1.625rem] leading-tight tracking-[0.02em]">
+                  {item.body}
+                </p>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          </RevealUp>
+        ))}
       </div>
-    </section>
+    </Section>
   );
 }

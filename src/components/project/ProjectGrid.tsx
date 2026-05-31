@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PROJECTS, FILTERS, type Category } from "@/lib/projects";
 import ProjectCard from "./ProjectCard";
+import RevealUp from "../shared/RevealUp";
 
 type FilterId = "all" | Category;
 
@@ -53,7 +54,9 @@ export default function ProjectGrid() {
             key={project.slug}
             className={i % 2 === 1 ? "md:translate-y-40" : ""}
           >
-            <ProjectCard project={project} />
+            <RevealUp>
+              <ProjectCard project={project} />
+            </RevealUp>
           </div>
         ))}
       </div>

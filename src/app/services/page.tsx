@@ -5,6 +5,7 @@ import Hero from "@/components/services/Hero";
 import VideoShowcase from "@/components/services/VideoShowcase";
 import Solutions from "@/components/services/Solutions";
 import Benefits from "@/components/services/Benefits";
+import Reveal from "@/components/shared/Reveal";
 import Footer from "@/components/shared/Footer";
 
 export const metadata: Metadata = {
@@ -20,9 +21,15 @@ export default function ServicesPage() {
       <GetInTouch />
       <main>
         <Hero />
-        <VideoShowcase />
-        <Solutions />
-        <Benefits />
+        <Reveal>
+          <VideoShowcase />
+        </Reveal>
+        <Reveal>
+          <Solutions />
+        </Reveal>
+        <Reveal className="pb-30">
+          <Benefits />
+        </Reveal>
       </main>
       <Footer />
     </>

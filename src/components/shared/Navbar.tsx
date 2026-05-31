@@ -12,9 +12,24 @@ const NAV_LINKS = [
   { label: "Contacts", href: "/contacts" },
 ];
 
-export default function Navbar() {
+type NavbarProps = {
+  /** override the global --nav-duration (e.g. "0.9s" or 0.9). number → s */
+  duration?: string | number;
+  /** override the global --nav-ease (e.g. "ease-out" or a cubic-bezier()) */
+  ease?: string;
+};
+
+export default function Navbar({ duration, ease }: NavbarProps = {}) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+
+  // Only emit override vars when given, so unset props fall through to the
+  // global :root defaults. A bare number is read as seconds (matching nav-delay).
+  const entrance: CSSProperties = {};
+  if (duration !== undefined)
+    (entrance as Record<string, string>)["--nav-duration"] =
+      typeof duration === "number" ? `${duration}s` : duration;
+  if (ease !== undefined) (entrance as Record<string, string>)["--nav-ease"] = ease;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -32,7 +47,7 @@ export default function Navbar() {
   }, [open]);
 
   return (
-    <header>
+    <header style={entrance}>
       <div
         className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
           scrolled
@@ -64,7 +79,7 @@ export default function Navbar() {
                 <span className="block transition-transform duration-700 ease-reveal group-hover:translate-y-[-120%]">
                   {link.label}
                 </span>
-                <span className="absolute left-5 top-1.5 block  translate-y-full transition-transform duration-700 ease-reveal group-hover:scale-100 scale-88 group-hover:translate-y-0">
+                <span className="absolute left-5 top-1.5 block  translate-y-full transition-transform duration-700 ease-reveal group-hover:scale-100 scale-6``8 group-hover:translate-y-0">
                   {link.label}
                 </span>
               </Link>

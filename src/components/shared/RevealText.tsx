@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type CSSProperties } from "react";
 
 type RevealTextProps = {
   text: string;
@@ -7,6 +7,10 @@ type RevealTextProps = {
   stagger?: number;
   /** initial delay before the first word (seconds) */
   delay?: number;
+  /** override the global --word-duration (e.g. "1.4s" or 1.4). number → s */
+  duration?: string | number;
+  /** override the global --word-ease (e.g. "ease-out" or a cubic-bezier()) */
+  ease?: string;
   as?: "h1" | "h2" | "h3" | "p" | "span";
 };
 
@@ -18,11 +22,22 @@ export default function RevealText({
   className = "",
   stagger = 0.06,
   delay = 0,
+  duration,
+  ease,
   as: Tag = "span",
 }: RevealTextProps) {
   const words = text.split(" ");
+
+  // Only emit override vars when given, so unset props fall through to the
+  // global :root defaults. A bare number is read as seconds (matching delay).
+  const overrides: Record<string, string> = {};
+  if (duration !== undefined)
+    overrides["--word-duration"] =
+      typeof duration === "number" ? `${duration}s` : duration;
+  if (ease !== undefined) overrides["--word-ease"] = ease;
+
   return (
-    <Tag aria-label={text} className={className}>
+    <Tag aria-label={text} className={className} style={overrides as CSSProperties}>
       {words.map((word, i) => (
         <Fragment key={`${word}-${i}`}>
           <span aria-hidden className="reveal-word">

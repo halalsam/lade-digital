@@ -1,4 +1,5 @@
 import RevealText from "../shared/RevealText";
+import RevealUp from "../shared/RevealUp";
 import PillButton from "../shared/PillButton";
 import { gradientFor } from "@/lib/gradient";
 
@@ -48,42 +49,40 @@ function ServiceCard({
   );
 }
 
+// Panel chrome (rounded-top, paper bg, container, padding) lives in the
+// <Section variant="overlap"> wrapper on the home page — this renders content.
 export default function ServicesPreview() {
   const [intro, ...rest] = SERVICE_CARDS;
   return (
-    <section className="relative">
-      <div className="rounded-t-[80px] bg-paper pt-36">
-        <div className="mx-auto max-w-[1600px] px-6 md:px-12 lg:px-60">
-          <RevealText
-            as="h2"
-            text="Our services"
-            className="display-xl mb-28 block"
-          />
+    <>
+      <RevealText
+        as="h2"
+        text="Our services"
+        className="display-xl mb-28 block"
+      />
 
-          <div className="grid gap-x-24 md:grid-cols-2">
-            <div className="grid gap-24">
-              <p className="max-w-[500px] text-[1.625rem] leading-tight tracking-[0.02em]">
-                From motion design to AI-powered products — we design and build
-                interfaces for the future.
-              </p>
-              <ServiceCard card={intro} />
-            </div>
-            <div className="mt-24 grid gap-24 md:mt-20">
-              {rest.map((card) => (
-                <ServiceCard key={card.key} card={card} />
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-32 text-center">
-            <PillButton
-              href="/services"
-              label="View all services"
-              variant="ink"
-            />
-          </div>
+      <div className="grid gap-x-24 md:grid-cols-2">
+        <div className="grid gap-24">
+          <p className="max-w-[500px] text-[1.625rem] leading-tight tracking-[0.02em]">
+            From motion design to AI-powered products — we design and build
+            interfaces for the future.
+          </p>
+          <RevealUp>
+            <ServiceCard card={intro} />
+          </RevealUp>
+        </div>
+        <div className="mt-24 grid gap-24 md:mt-20">
+          {rest.map((card, i) => (
+            <RevealUp key={card.key} delay={i * 100}>
+              <ServiceCard card={card} />
+            </RevealUp>
+          ))}
         </div>
       </div>
-    </section>
+
+      <div className="mt-32 text-center">
+        <PillButton href="/services" label="View all services" variant="ink" />
+      </div>
+    </>
   );
 }

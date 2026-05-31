@@ -1,23 +1,24 @@
 import Link from "@/components/transition/TransitionLink";
 import RevealText from "../shared/RevealText";
+import RevealUp from "../shared/RevealUp";
 import PillButton from "../shared/PillButton";
 import { BLOG_POSTS } from "@/lib/blog";
 import { gradientFor } from "@/lib/gradient";
 
+// Panel chrome (rounded-top, ink bg, container, padding) lives in the
+// <Section variant="overlap"> wrapper on the home page — this renders content.
 export default function BlogPreview() {
   return (
-    <section className="relative text-paper">
-      <div className="rounded-t-[80px] bg-ink pt-36">
-        <div className="mx-auto max-w-[1600px] px-6 md:px-12 lg:px-60">
-          <RevealText as="h2" text="Blog" className="display-xl mb-28 block" />
+    <>
+      <RevealText as="h2" text="Blog" className="display-xl mb-28 block" />
 
-          <div className="grid gap-10">
-            {BLOG_POSTS.map((post) => (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="group grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-16"
-              >
+      <div className="grid gap-10">
+        {BLOG_POSTS.map((post, i) => (
+          <RevealUp key={post.slug} delay={i * 100}>
+            <Link
+              href={`/blog/${post.slug}`}
+              className="group grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-16"
+            >
                 <div className="relative aspect-video overflow-hidden rounded-[20px]">
                   <div
                     className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
@@ -35,15 +36,14 @@ export default function BlogPreview() {
                     {post.date}
                   </p>
                 </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-32 text-center">
-            <PillButton href="/blog" label="Visit our blog" variant="paper" />
-          </div>
-        </div>
+            </Link>
+          </RevealUp>
+        ))}
       </div>
-    </section>
+
+      <div className="mt-32 text-center">
+        <PillButton href="/blog" label="Visit our blog" variant="paper" />
+      </div>
+    </>
   );
 }

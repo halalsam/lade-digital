@@ -1,4 +1,10 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/*
+  ---break---
+*/
+@custom-variant dark (&:is(.dark *));
 
 /*
   Design tokens for the Cuberto-style editorial agency layout.
@@ -17,6 +23,57 @@
 
   --animate-spin-slow: spin 15s linear infinite;
   --animate-spin-icon: spin 5s linear infinite;
+}
+
+/* Runtime animation knobs. These live in :root (not @theme) so they emit real
+   custom properties that the reveal CSS reads at runtime — and so they can be
+   overridden globally here, per-subtree, or per-instance via component props.
+   In @theme these wouldn't reliably reach :root and would resolve to empty,
+   leaving the animations with no duration (content stuck hidden). */
+:root {
+  /* Scroll reveals (InView + Reveal). */
+  --reveal-duration: 0.85s;
+  --reveal-ease: var(--ease-reveal);
+
+  /* Per-word heading reveal (RevealText). */
+  --word-duration: 1s;
+  --word-ease: var(--ease-expo);
+
+  /* Navbar entrance (Navbar). */
+  --nav-duration: 0.7s;
+  --nav-ease: var(--ease-reveal);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 html {
@@ -109,7 +166,6 @@ body {
   color: var(--color-ink);
 }
 
-
 /* ---- Staggered word reveal used on the hero / section headings ---- */
 @keyframes word-rise {
   from {
@@ -129,7 +185,7 @@ body {
   display: inline-block;
   padding: 0.18em;
   transform: translateY(110%);
-  animation: word-rise 1s var(--ease-expo) forwards;
+  animation: word-rise var(--word-duration) var(--word-ease) forwards;
 }
 /* While a page transition is masking the screen, hold the incoming page's
    word-reveals closed so they don't play behind the rising sheet. The
@@ -144,8 +200,9 @@ html[data-reveal="wait"] .reveal-word > span {
 .reveal-up {
   opacity: 0;
   transform: translateY(var(--reveal-y, 28px));
-  transition: opacity 0.85s var(--ease-reveal) var(--reveal-delay, 0ms),
-    transform 0.85s var(--ease-reveal) var(--reveal-delay, 0ms);
+  transition: opacity var(--reveal-duration) var(--reveal-ease)
+      var(--reveal-delay, 0ms),
+    transform var(--reveal-duration) var(--reveal-ease) var(--reveal-delay, 0ms);
 }
 .reveal-up[data-shown="true"] {
   opacity: 1;
@@ -154,6 +211,42 @@ html[data-reveal="wait"] .reveal-word > span {
 /* No-JS: never leave content stuck hidden. */
 @media (scripting: none) {
   .reveal-up {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Scroll reveal variants ----
+   Driven by the <InView> wrapper (components/shared/InView.tsx), which toggles
+   data-shown once the block enters the viewport. Each variant shares the same
+   timing knobs (--reveal-delay) but a different resting transform.
+   .reveal-fade — opacity only
+   .reveal-scale — opacity + a slight scale-up
+   .reveal-up-soft — opacity + rise (same idea as .reveal-up, hook-driven) */
+.reveal-fade,
+.reveal-scale,
+.reveal-up-soft {
+  opacity: 0;
+  transition: opacity var(--reveal-duration) var(--reveal-ease)
+      var(--reveal-delay, 0ms),
+    transform var(--reveal-duration) var(--reveal-ease) var(--reveal-delay, 0ms);
+}
+.reveal-scale {
+  transform: scale(var(--reveal-scale-from, 0.94));
+}
+.reveal-up-soft {
+  transform: translateY(var(--reveal-y, 28px));
+}
+.reveal-fade[data-shown="true"],
+.reveal-scale[data-shown="true"],
+.reveal-up-soft[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+@media (scripting: none) {
+  .reveal-fade,
+  .reveal-scale,
+  .reveal-up-soft {
     opacity: 1;
     transform: none;
   }
@@ -172,7 +265,7 @@ html[data-reveal="wait"] .reveal-word > span {
   }
 }
 .nav-reveal {
-  animation: nav-enter 0.7s var(--ease-reveal) both;
+  animation: nav-enter var(--nav-duration) var(--nav-ease) both;
   animation-delay: var(--nav-delay, 0s);
 }
 html[data-reveal="wait"] .nav-reveal {
@@ -188,6 +281,9 @@ html[data-reveal="wait"] .nav-reveal {
 /* Reduced motion: skip the reveal entirely — content is simply present. */
 @media (prefers-reduced-motion: reduce) {
   .reveal-up,
+  .reveal-fade,
+  .reveal-scale,
+  .reveal-up-soft,
   .nav-reveal {
     opacity: 1;
     transform: none;
@@ -227,7 +323,145 @@ html[data-reveal="wait"] .nav-reveal {
   animation-direction: reverse;
 }
 
-/* The page-transition look (`::view-transition-*`) is injected as a raw <style>
+/* ---- Global cursor follower (cb-cursor) ----
+   Driven by components/cursor/CursorProvider.tsx. The NATIVE system cursor stays
+   visible; this is an extra accent dot that trails it and morphs into whatever
+   element you set while hovering a target. GSAP writes transform x/y/rotation on
+   the ROOT and skewX/rotation on the INNER (the directional skew on motion), so
+   CSS here must NOT set `transform` on either of those — size/look changes ride
+   on width/height/margin/background and on the inner content slot instead.
+
+   The root is a zero-size anchor; the inner is centered on the pointer via a
+   negative margin so the raw client x/y from GSAP lands the dot under the
+   pointer. pointer-events stay off so it never blocks clicks.
+
+   State classes (set by the provider):
+     -hidden  pointer left the window / not yet moved
+     -active  some content is set (hovering a target) → the dot grows
+     -click   pointer pressed → quick shrink
+   Plus any custom class you pass (data-cursor="-pill" or set({className})). */
+.cb-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 500;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  contain: layout style size;
+  color: var(--color-ink);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb-cursor {
+    display: none;
+  }
+}
+
+/* The body. width/height/margin animate; transform is owned by GSAP (skew). */
+.cb-cursor-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 1000px;
+  background: currentColor;
+  opacity: 0.65;
+  transition: width 0.4s var(--ease-reveal), height 0.4s var(--ease-reveal),
+    margin 0.4s var(--ease-reveal), background-color 0.3s ease, opacity 0.3s ease;
+}
+
+/* Content slot — whatever ReactNode you set lands here. Scaled in on activate.
+   Its own transform (scale) is independent of the inner's GSAP skew. */
+.cb-cursor-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--color-paper);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.3s var(--ease-reveal), transform 0.3s var(--ease-reveal);
+}
+.cb-cursor-content > svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.cb-cursor-content :is(img, video) {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+/* Active (has content): grow into a filled pill and reveal the content. */
+.cb-cursor.-active .cb-cursor-inner {
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
+  background: var(--color-ink);
+  opacity: 1;
+}
+.cb-cursor.-active .cb-cursor-content {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Press feedback — scale the CONTENT (not the inner, GSAP owns that transform). */
+.cb-cursor.-click .cb-cursor-content {
+  transform: scale(0.86);
+}
+
+/* ---- Optional named states you can opt into ---- */
+
+/* -ring: a hollow outlined ring instead of a filled pill. */
+.cb-cursor.-ring.-active .cb-cursor-inner {
+  background: transparent;
+  border: 1.5px solid currentColor;
+  color: var(--color-ink);
+}
+.cb-cursor.-ring.-active .cb-cursor-content {
+  color: var(--color-ink);
+}
+
+/* -media: a larger thumbnail frame for image/video previews. */
+.cb-cursor.-media.-active .cb-cursor-inner {
+  width: 220px;
+  height: 150px;
+  margin: -75px 0 0 -110px;
+  border-radius: 14px;
+  background: transparent;
+  overflow: hidden;
+}
+
+/* -blend: invert against whatever is behind (difference blend). */
+.cb-cursor.-blend {
+  mix-blend-mode: difference;
+  color: #fff;
+}
+
+/* Hidden: fade + collapse the body (no transform — GSAP owns it). */
+.cb-cursor.-hidden .cb-cursor-inner {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+
+/* The page-transition look (`::view-transition-*`) is injected as a raw \3c style>
    tag from components/transition/TransitionProvider.tsx — Turbopack's dev CSS
    pipeline strips `::view-transition` rules from processed stylesheets, so they
    can't live here. */
@@ -241,5 +475,100 @@ html[data-reveal="wait"] .nav-reveal {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+/*
+  ---break---
+*/
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+/*
+  ---break---
+*/
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+/*
+  ---break---
+*/
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }

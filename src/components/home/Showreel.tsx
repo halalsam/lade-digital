@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import RevealScale from "../shared/RevealScale";
 
 // Rounded showreel that expands to a fullscreen player on click. Drop the reel
 // at /public/assets/showreel/short.mp4 (and full.mp4 for the modal); until then
@@ -21,6 +22,7 @@ export default function Showreel() {
   return (
     <section className="relative z-10">
       <div className="mx-auto max-w-[1600px] px-6 md:px-12 lg:px-[7.5rem]">
+        <RevealScale>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -46,6 +48,7 @@ export default function Showreel() {
             </svg>
           </span>
         </button>
+        </RevealScale>
       </div>
 
       {/* Fullscreen modal */}

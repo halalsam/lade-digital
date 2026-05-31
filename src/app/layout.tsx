@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { TransitionProvider } from "@/components/transition/TransitionProvider";
+import { CursorProvider } from "@/components/cursor/CursorProvider";
 import "./globals.css";
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 // Author (variable) — the studio's primary typeface, self-hosted and optimized
 // through next/font. A single variable file per style spans the full weight
@@ -43,9 +49,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={author.variable}>
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body>
-        <TransitionProvider>{children}</TransitionProvider>
+        <TransitionProvider>
+          <CursorProvider>{children}</CursorProvider>
+        </TransitionProvider>
       </body>
     </html>
   );

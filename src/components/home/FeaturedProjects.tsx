@@ -1,5 +1,6 @@
 import Link from "@/components/transition/TransitionLink";
 import RevealText from "../shared/RevealText";
+import RevealUp from "../shared/RevealUp";
 import PillButton from "../shared/PillButton";
 import { FEATURED_LEFT, FEATURED_RIGHT, type FeaturedProject } from "@/lib/projects";
 import { gradientFor } from "@/lib/gradient";
@@ -32,40 +33,38 @@ function FeaturedCard({ project }: { project: FeaturedProject }) {
   );
 }
 
+// Panel chrome (rounded-top, dark bg, container, padding) lives in the
+// <Section variant="overlap"> wrapper on the home page — this renders content.
 export default function FeaturedProjects() {
   return (
-    <section className="relative text-paper">
-      <div className="rounded-t-[80px] bg-[#161616] pb-2 pt-36">
-        <div className="mx-auto max-w-[1600px] px-6 md:px-12 lg:px-60">
-          <RevealText
-            as="h2"
-            text="Featured projects"
-            className="display-xl mb-28 block"
-          />
+    <>
+      <RevealText
+        as="h2"
+        text="Featured projects"
+        className="display-xl mb-28 block"
+      />
 
-          {/* Offset two columns: right column starts lower */}
-          <div className="grid gap-x-24 md:grid-cols-2">
-            <div className="grid gap-24">
-              {FEATURED_LEFT.map((p) => (
-                <FeaturedCard key={p.slug} project={p} />
-              ))}
-            </div>
-            <div className="mt-24 grid gap-24 md:mt-[331px]">
-              {FEATURED_RIGHT.map((p) => (
-                <FeaturedCard key={p.slug} project={p} />
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-32 text-center">
-            <PillButton
-              href="/projects"
-              label="View all projects"
-              variant="paper"
-            />
-          </div>
+      {/* Offset two columns: right column starts lower */}
+      <div className="grid gap-x-24 md:grid-cols-2">
+        <div className="grid gap-24">
+          {FEATURED_LEFT.map((p, i) => (
+            <RevealUp key={p.slug} delay={i * 100}>
+              <FeaturedCard project={p} />
+            </RevealUp>
+          ))}
+        </div>
+        <div className="mt-24 grid gap-24 md:mt-[331px]">
+          {FEATURED_RIGHT.map((p, i) => (
+            <RevealUp key={p.slug} delay={i * 100}>
+              <FeaturedCard project={p} />
+            </RevealUp>
+          ))}
         </div>
       </div>
-    </section>
+
+      <div className="my-32 text-center">
+        <PillButton href="/projects" label="View all projects" variant="paper" />
+      </div>
+    </>
   );
 }

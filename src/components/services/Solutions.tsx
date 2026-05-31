@@ -1,6 +1,8 @@
 import RevealText from "../shared/RevealText";
+import RevealUp from "../shared/RevealUp";
 import PillButton from "../shared/PillButton";
 import Line from "../shared/Line";
+import Section from "../shared/Section";
 
 const SOLUTIONS = [
   {
@@ -42,37 +44,35 @@ function Hairline({ color = "var(--color-ink)" }: { color?: string }) {
 
 export default function Solutions() {
   return (
-    <section className="relative overflow-hidden pt-36">
-      <div className="mx-auto max-w-[1600px] px-6 md:px-12 lg:px-60">
-        <RevealText
-          as="h2"
-          text="Our solutions"
-          className="display-xl mb-28 block"
-        />
+    <Section variant="normal" className="overflow-hidden pt-36 pb-0">
+      <RevealText
+        as="h2"
+        text="Our solutions"
+        className="display-xl mb-28 block"
+      />
 
-        <div>
-          {SOLUTIONS.map((item) => (
-            <div key={item.label}>
-              <div className="mb-12 mt-24 first:mt-0">
-                <Line />
+      <div>
+        {SOLUTIONS.map((item, i) => (
+          <RevealUp key={item.label}>
+            <div className={`mb-12 mt-24 ${i === 0 ? "mt-0" : ""}`}>
+              <Line />
+            </div>
+            <div className="flex flex-col gap-8 md:flex-row md:gap-12">
+              <div className="flex-1">
+                <h3 className="eyebrow">{item.label}</h3>
               </div>
-              <div className="flex flex-col gap-8 md:flex-row md:gap-12">
-                <div className="flex-1">
-                  <h3 className="eyebrow">{item.label}</h3>
-                </div>
-                <div className="flex-1">
-                  <p className="max-w-[500px] text-[1.625rem] leading-tight tracking-[0.02em]">
-                    {item.body}
-                  </p>
-                  <div className="mt-10">
-                    <PillButton href={item.href} label="Read more" variant="ink" />
-                  </div>
+              <div className="flex-1">
+                <p className="max-w-[500px] text-[1.625rem] leading-tight tracking-[0.02em]">
+                  {item.body}
+                </p>
+                <div className="mt-10">
+                  <PillButton href={item.href} label="Read more" variant="ink" />
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </RevealUp>
+        ))}
       </div>
-    </section>
+    </Section>
   );
 }

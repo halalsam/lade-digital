@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/shared/Navbar";
 import GetInTouch from "@/components/shared/GetInTouch";
 import Reveal from "@/components/shared/Reveal";
+import Section from "@/components/shared/Section";
 import HomeHero from "@/components/home/HomeHero";
 import Showreel from "@/components/home/Showreel";
 import AboutSummary from "@/components/home/AboutSummary";
@@ -10,6 +11,7 @@ import ServicesPreview from "@/components/home/ServicesPreview";
 import BlogPreview from "@/components/home/BlogPreview";
 import HaveAnIdea from "@/components/project/HaveAnIdea";
 import Footer from "@/components/shared/Footer";
+import RevealScale from "@/components/shared/RevealScale";
 
 export const metadata: Metadata = {
   title: "Digital Design & Development Agency",
@@ -26,27 +28,34 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
-      <Navbar />
+      <Navbar duration={2} />
       <GetInTouch />
       <main>
         <HomeHero />
         {/* Everything below the hero rises + fades in as it scrolls into view. */}
-        <Reveal delay={1000}>
+        <RevealScale duration={2000} delay={100}>
           <Showreel />
-        </Reveal>
-        <Reveal>
+        </RevealScale>
+        <Reveal className="py-20">
           <AboutSummary />
         </Reveal>
-        {/* Each section below uses a rounded-top panel that overlaps the
-            previous one by 80px, recreating the source's stacked reveal. */}
-        <Reveal className="-mt-20">
-          <FeaturedProjects />
+        {/* Each section below is a rounded-top panel that overlaps the previous
+            one by 80px (Section variant="overlap"), recreating the stacked
+            reveal. Only the panel background differs between them. */}
+        <Reveal>
+          <Section variant="overlap" bg="#161616" className="pb-30 text-paper">
+            <FeaturedProjects />
+          </Section>
         </Reveal>
-        <Reveal className="-mt-20">
-          <ServicesPreview />
+        <Reveal>
+          <Section variant="overlap" bg="var(--color-paper)" className="pb-30">
+            <ServicesPreview />
+          </Section>
         </Reveal>
-        <Reveal className="-mt-20">
-          <BlogPreview />
+        <Reveal>
+          <Section variant="overlap" bg="var(--color-ink)" className="pb-30 text-paper">
+            <BlogPreview />
+          </Section>
         </Reveal>
         <Reveal>
           <HaveAnIdea />

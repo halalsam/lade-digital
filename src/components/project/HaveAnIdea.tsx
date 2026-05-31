@@ -4,7 +4,7 @@ import Link from "@/components/transition/TransitionLink";
 // /public/assets/footer/ropes.mp4; until then the animated gradient stands in.
 export default function HaveAnIdea() {
   return (
-    <section className="relative grid min-h-[700px] place-items-center overflow-hidden bg-ink text-center text-paper md:min-h-[866px]">
+    <section className="relative grid  place-items-center overflow-hidden bg-ink text-center text-paper md:min-h-[866px] py-32">
       {/* Background media + placeholder */}
       <div className="absolute inset-0">
         <div
