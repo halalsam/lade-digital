@@ -7,9 +7,16 @@ import Reveal from "@/components/shared/Reveal";
 import CtaFooter from "@/components/shared/CtaFooter";
 
 export const metadata: Metadata = {
-  title: "Our Projects — Bringing ideas to life",
+  title: "Projects — Bringing ideas to life",
   description:
     "Selected work across websites, applications, and branding. We help bring ideas to life and create digital products that work.",
+  alternates: { canonical: "/projects" },
+  openGraph: {
+    title: "Our Projects — Bringing ideas to life",
+    description:
+      "Selected work across websites, applications, and branding.",
+    url: "/projects",
+  },
 };
 
 export default function ProjectsPage() {

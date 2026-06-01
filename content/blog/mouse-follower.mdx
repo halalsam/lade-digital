@@ -1,0 +1,24 @@
+---
+title: "Mouse Follower"
+category: "Dev Source"
+date: "2022-04-11"
+excerpt: "A small custom cursor that blends, scales, and reacts — the open-source building block behind our interactions."
+author: "The Studio"
+---
+
+A custom cursor is one of those tiny touches that makes a site feel
+hand-crafted. Done well, it's invisible until it matters — then it scales,
+blends, or labels itself to guide the eye.
+
+## The idea
+
+Track the pointer, lerp a follower element toward it each frame, and let
+elements opt into behaviours via a `data-cursor` attribute.
+
+## Why it works
+
+- **Lerping** gives the follower a natural, weighted lag.
+- **Blend modes** let it invert whatever it sits over.
+- **Data attributes** keep the behaviour declarative and per-element.
+
+Small in code, big in feel. That's the whole game.

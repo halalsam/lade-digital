@@ -13,13 +13,16 @@ import CtaFooter from "@/components/shared/CtaFooter";
 import RevealScale from "@/components/shared/RevealScale";
 
 export const metadata: Metadata = {
-  title: "Digital Design & Development Agency",
+  // Absolute title opts the homepage out of the "%s — Lade" template.
+  title: { absolute: "Lade — Digital Design & Development Studio" },
   description:
     "We help companies build scalable digital products with thoughtful design systems and carefully crafted development.",
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Digital Design & Development Agency",
+    title: "Lade — Digital Design & Development Studio",
     description:
       "We design and build websites, platforms, mobile apps, and brands.",
+    url: "/",
     type: "website",
   },
 };

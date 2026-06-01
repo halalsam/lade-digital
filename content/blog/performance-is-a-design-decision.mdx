@@ -1,0 +1,54 @@
+---
+title: "Performance Is a Design Decision"
+category: "Dev Source"
+date: "2026-05-14"
+excerpt: "Speed isn't something you bolt on at the end. It's a creative constraint that makes the work better."
+author: "The Studio"
+---
+
+There's a myth that beautiful sites are slow and fast sites are plain. It's
+backwards. The most memorable work is usually the leanest — because performance
+forces the kind of restraint that good design needs anyway.
+
+Speed is a feature your visitors feel before they understand anything else.
+
+## The first second decides everything
+
+A visitor forms an impression of your site long before the page finishes
+loading. A fast first paint reads as *competence*. A slow, janky entrance reads
+as *amateur* — no matter how polished the thing eventually becomes.
+
+You don't get a second chance to make a first frame.
+
+## Where the weight usually hides
+
+- **Images.** Almost always the biggest cost. Serve modern formats, size them to
+  their actual display dimensions, and lazy-load anything below the fold.
+- **Fonts.** A single variable font beats four static weights — fewer requests,
+  one file, the full range. Preload it and let text show immediately.
+- **JavaScript.** The most expensive bytes on the page, because the browser has
+  to parse and run them, not just download them. Ship less of it.
+- **Motion.** Animate `transform` and `opacity` — the cheap, GPU-friendly
+  properties — and leave layout-triggering animations alone.
+
+## Constraints make better work
+
+When a budget says "this hero has to be under 200KB," it quietly rules out the
+lazy options: the stock video, the heavyweight library, the five competing
+animations. What's left is the disciplined choice — and disciplined choices tend
+to look better.
+
+Limitation isn't the enemy of craft. It's the source of it.
+
+## Measure what visitors feel
+
+Chase the metrics that map to perception:
+
+1. **Largest Contentful Paint** — how soon the main thing appears.
+2. **Interaction to Next Paint** — how quickly the page answers a tap.
+3. **Cumulative Layout Shift** — how much the page jumps around while loading.
+
+Improve those three and the site won't just *score* well — it'll *feel* fast,
+which is the only thing the visitor actually cares about.
+
+Design for speed, and the elegance comes along for the ride.

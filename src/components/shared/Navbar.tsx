@@ -9,7 +9,6 @@ import { HoverText, hoverTargetClass } from "./HoverButton";
 const NAV_LINKS = [
   { label: "Services", href: "/services" },
   { label: "Projects", href: "/projects" },
-  { label: "Company", href: "/about" },
   { label: "Blog", href: "/blog" },
   { label: "Contacts", href: "/contacts" },
 ];

@@ -6,6 +6,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -33,14 +34,34 @@ const author = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Our Services — Going beyond what's possible",
-  description:
-    "We design and build websites, platforms, mobile apps, and brands. A full-spectrum studio going beyond what's possible.",
+  // Resolves all relative metadata URLs (canonicals, OG images) to absolute.
+  metadataBase: new URL(SITE_URL),
+  // "%s" is filled by each page's title; pages may override with an absolute
+  // title (e.g. the home page) to opt out of the suffix.
+  title: {
+    default: `${SITE_NAME} — Digital Design & Development Studio`,
+    template: `%s — ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Our Services — Going beyond what's possible",
-    description:
-      "We design and build websites, platforms, mobile apps, and brands.",
     type: "website",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    url: "/",
+    title: `${SITE_NAME} — Digital Design & Development Studio`,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — Digital Design & Development Studio`,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
 };
 

@@ -9,9 +9,16 @@ import Reveal from "@/components/shared/Reveal";
 import CtaFooter from "@/components/shared/CtaFooter";
 
 export const metadata: Metadata = {
-  title: "Our Services — Going beyond what's possible",
+  title: "Services — Going beyond what's possible",
   description:
     "We design and build websites, platforms, mobile apps, and brands. A full-spectrum studio going beyond what's possible.",
+  alternates: { canonical: "/services" },
+  openGraph: {
+    title: "Our Services — Going beyond what's possible",
+    description:
+      "We design and build websites, platforms, mobile apps, and brands.",
+    url: "/services",
+  },
 };
 
 export default function ServicesPage() {
