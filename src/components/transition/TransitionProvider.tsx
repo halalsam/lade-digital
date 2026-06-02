@@ -47,7 +47,7 @@ const TRANSITION_CSS = `
 
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.62s;
+  animation-duration: 0.95s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   animation-fill-mode: both;
   transform-origin: center center;
