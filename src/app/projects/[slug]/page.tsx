@@ -126,14 +126,15 @@ export default async function ProjectPage({
         <article className="overflow-hidden pb-28 pt-36 md:pt-52">
           {/* Hero */}
           <header className={WRAP}>
+
             <Link
               href="/projects"
               className="mb-10 inline-block text-base uppercase opacity-50 transition-opacity hover:opacity-100"
-            >
-              ← All projects
+            ><span ></span>
+              All projects
             </Link>
 
-            <div className="eyebrow flex flex-wrap items-center gap-x-3 opacity-50">
+            {/* <div className="eyebrow flex flex-wrap items-center gap-x-3 opacity-50">
               <span>{categoryLabel}</span>
               {detail.year !== "—" && (
                 <>
@@ -141,7 +142,7 @@ export default async function ProjectPage({
                   <span>{detail.year}</span>
                 </>
               )}
-            </div>
+            </div> */}
 
             <RevealText
               as="h1"

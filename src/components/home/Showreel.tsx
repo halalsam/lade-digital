@@ -23,6 +23,7 @@ export default function Showreel() {
   const [open, setOpen] = useState(false);
   const cursor = useCursor();
   const resetCursor = useRef<(() => void) | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   // Restore the cursor to its default state. Idempotent — safe to call from
   // leave/cancel/click and on unmount without double-resetting.
@@ -49,15 +50,20 @@ export default function Showreel() {
       <Container width="wide">
         <RevealScale>
           <button
+            ref={btnRef}
             type="button"
             onClick={() => {
               clearCursor(); // opening fullscreen — don't leave the glyph stuck
               setOpen(true);
             }}
             onPointerEnter={() => {
+              // `owner` lets the provider auto-clear the glyph when the pointer
+              // leaves the button (or it scrolls out from under a still cursor),
+              // so it can't get stuck even if onPointerLeave is missed.
               resetCursor.current = cursor.set({
                 content: <PlayGlyph />,
                 className: "-play",
+                owner: btnRef.current,
               });
             }}
             onPointerLeave={clearCursor}

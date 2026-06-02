@@ -129,11 +129,11 @@ export default function Benefits() {
         {BENEFITS.map((item, i) => (
           <RevealUp key={item.label}>
             <div
-              className={`mb-12 mt-24 h-px w-full bg-paper/40 ${
+              className={`my-13 h-px w-full bg-paper/40 ${
                 i === 0 ? "mt-0" : ""
               }`}
             />
-            <div className="flex flex-col gap-8 md:flex-row md:gap-12">
+            <div className="flex flex-col gap-8 md:flex-row md:items-center md:gap-12">
               <div className="flex-1">{item.icon}</div>
               <div className="flex-1">
                 <h3 className="eyebrow mb-4">{item.label}</h3>

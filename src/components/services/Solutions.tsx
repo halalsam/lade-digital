@@ -46,7 +46,7 @@ export default function Solutions() {
   return (
     <Section
       variant="normal"
-      className="overflow-hidden pb-0 pt-20 md:pt-28 lg:pt-36"
+      className="overflow-hidden mb-16 pt-20 md:pt-28 lg:pt-36"
       labelledBy="solutions-heading"
     >
       <SectionHeading id="solutions-heading" text="Our solutions" />
@@ -54,10 +54,12 @@ export default function Solutions() {
       <div>
         {SOLUTIONS.map((item, i) => (
           <RevealUp key={item.label}>
-            <div className={`mb-12 mt-24 ${i === 0 ? "mt-0" : ""}`}>
-              <Line />
-            </div>
-            <div className="flex flex-col gap-8 md:flex-row md:gap-12">
+            <div
+              className={`my-13 h-px w-full bg-ink/40 ${
+                i === 0 ? "mt-0" : ""
+              }`}
+            />
+            <div className="flex flex-col gap-8 md:flex-row md:items-center md:gap-12">
               <div className="flex-1">
                 <h3 className="eyebrow">{item.label}</h3>
               </div>
@@ -66,7 +68,11 @@ export default function Solutions() {
                   {item.body}
                 </p>
                 <div className="mt-10">
-                  <PillButton href={item.href} label="Read more" variant="ink" />
+                  <PillButton
+                    href={item.href}
+                    label="Read more"
+                    variant="ink"
+                  />
                 </div>
               </div>
             </div>

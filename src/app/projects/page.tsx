@@ -32,7 +32,7 @@ export default function ProjectsPage() {
         />
         <section className="overflow-hidden pb-40">
           <Reveal className="block">
-            <Container>
+            <Container className="mb-16">
               <ProjectGrid />
             </Container>
           </Reveal>

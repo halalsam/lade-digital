@@ -34,7 +34,7 @@ export default function ServicesPage() {
         <Reveal>
           <Solutions />
         </Reveal>
-        <Reveal className="pb-30">
+        <Reveal>
           <Benefits />
         </Reveal>
       </main>
