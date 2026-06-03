@@ -38,7 +38,7 @@ export default function InView({
   className = "",
   variant = "up",
   y = 28,
-  scaleFrom = 0.94,
+  scaleFrom = 0.74,
   delay = 0,
   duration,
   ease,

@@ -308,6 +308,27 @@ html[data-reveal="wait"] .reveal-word > span {
   }
 }
 
+/* While a page transition masks the screen, hold the incoming page's
+   scroll-reveals in their hidden resting state — even when their
+   IntersectionObserver has already fired (data-shown="true") behind the rising
+   sheet. They release and transition in only once the gate opens
+   (<html data-reveal="go">), i.e. after the transition has fully settled. This
+   beats the [data-shown="true"] rules on specificity, so no !important is
+   needed. Mirrors the word/nav-reveal gate above. */
+html[data-reveal="wait"] .reveal-up,
+html[data-reveal="wait"] .reveal-fade,
+html[data-reveal="wait"] .reveal-scale,
+html[data-reveal="wait"] .reveal-up-soft {
+  opacity: 0;
+}
+html[data-reveal="wait"] .reveal-up,
+html[data-reveal="wait"] .reveal-up-soft {
+  transform: translateY(var(--reveal-y, 28px));
+}
+html[data-reveal="wait"] .reveal-scale {
+  transform: scale(var(--reveal-scale-from, 0.94));
+}
+
 /* ---- Navbar entrance: items fade + drop in on load, held during a page
    transition (gated by the same data-reveal flag as the hero reveals). ---- */
 @keyframes nav-enter {

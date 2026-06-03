@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/shared/Navbar";
-import GetInTouch from "@/components/shared/GetInTouch";
+// import GetInTouch from "@/components/shared/GetInTouch";
 import Reveal from "@/components/shared/Reveal";
 import Section from "@/components/shared/Section";
 import PageHero from "@/components/shared/PageHero";
@@ -31,7 +31,7 @@ export default function HomePage() {
   return (
     <>
       <Navbar duration={2} />
-      <GetInTouch />
+      {/* <GetInTouch /> */}
       <main>
         <PageHero
           title="Digital design & development agency"
@@ -39,7 +39,7 @@ export default function HomePage() {
           titleDuration={2}
         />
         {/* Everything below the hero rises + fades in as it scrolls into view. */}
-        <RevealScale duration={2000} delay={100}>
+        <RevealScale  duration={2000} delay={100}>
           <Showreel />
         </RevealScale>
         <Reveal className="py-20">

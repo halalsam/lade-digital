@@ -69,6 +69,16 @@ export default function Navbar({ duration, ease }: NavbarProps = {}) {
     };
   }, [open]);
 
+  // Close the mobile menu only once the new route has committed — NOT on tap.
+  // The menu is a full-screen overlay sitting over the current page; closing it
+  // the instant a link is tapped pulls that cover away while router.push is
+  // still in flight, briefly exposing the OLD page underneath (the mobile
+  // "glitch"). Leaving it up until the pathname changes means it closes behind
+  // the page-transition curtain, so the old page is never revealed.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
     <header style={entrance}>
       <div
@@ -152,7 +162,12 @@ export default function Navbar({ duration, ease }: NavbarProps = {}) {
             <Link
               key={link.href}
               href={link.href}
-              onClick={() => setOpen(false)}
+              // Same-page taps never change the pathname (so the effect above
+              // won't fire) and trigger no transition — close immediately. Any
+              // real navigation is left to close via the pathname effect.
+              onClick={() => {
+                if (link.href === pathname) setOpen(false);
+              }}
               aria-current={isActive(link.href) ? "page" : undefined}
               className={`py-1.5 text-4xl font-medium tracking-tight text-ink ${
                 isActive(link.href) ? "underline underline-offset-8" : ""
