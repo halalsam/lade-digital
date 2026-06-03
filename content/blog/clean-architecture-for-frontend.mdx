@@ -1,0 +1,186 @@
+---
+title: "Clean Architecture for a Frontend — Separation of Concerns That Sticks"
+category: "Dev Source"
+date: "2026-05-27"
+excerpt: "One source of truth per concept, data out of components, semantic HTML by default. How we audit a frontend for drift and refactor it back to one clean shape."
+author: "The Studio"
+---
+
+Most frontends don't rot in one bad commit. They drift. A card gets copy-pasted
+into a third place. A container string is tweaked by 4 pixels in one file. A data
+array hides inside a component that should only do layout. None of it breaks the
+build — and all of it compounds into a codebase where every change has to be made
+in three places and the document outline is upside-down.
+
+Clean frontend architecture is mostly the discipline of noticing that drift and
+pulling it back to **one shape**. Here are the patterns we apply, drawn from a
+real audit of this site.
+
+## The smell: three components that render the same thing
+
+The clearest sign of drift is **near-duplicate components**. We found *three*
+project-card implementations all rendering the same gradient tile with a name and
+description:
+
+| File | Status | Problem |
+|---|---|---|
+| `home/ProjectCard.tsx` | dead — no importer | Should be deleted outright. |
+| `project/ProjectCard.tsx` | in use | Re-defines its own `gradientFor` — a copy of the lib function. |
+| `home/FeaturedProjects.tsx` → local `FeaturedCard` | in use | Same markup again, just different text color and aspect. |
+
+Three copies means a fix to the card is three edits, and a guarantee one gets
+missed. The cure is a **single source of truth** with the differences expressed as
+props, not as forks:
+
+```tsx
+// one shared component; variants are parameters, not separate files
+<ProjectCard project={p} theme="paper" tall />
+<ProjectCard project={p} theme="ink" />
+```
+
+```tsx
+// and it imports the shared helper — never re-implements it
+import { gradientFor } from "@/lib/gradient";
+```
+
+The rule: **if two components render the same thing with small differences, those
+differences are props.** Delete the dead file, collapse the rest into one. Every
+duplicate you remove is a class of "fixed it in two places, forgot the third" bug
+that can no longer happen.
+
+## Data does not live in presentation components
+
+A component that does layout *and* owns its content is doing two jobs, and the
+content can't be reused without dragging the markup along. We kept finding arrays
+embedded in components:
+
+```tsx
+// ❌ services data trapped inside a layout component
+function ServicesPreview() {
+  const SERVICE_CARDS = [
+    { title: "Design", … },
+    { title: "Engineering", … },
+  ];
+  return /* …markup… */;
+}
+```
+
+The same service list was needed by three different sections, so it was pasted
+into three. The fix is to lift content into `lib/` and import it — content
+becomes data, components become pure layout:
+
+```tsx
+// lib/services.ts — the single list, consumed everywhere
+export const SERVICES = [ /* … */ ];
+
+// the component now only knows how to render, not what
+import { SERVICES } from "@/lib/services";
+function ServicesPreview() {
+  return SERVICES.map((s) => <ServiceCard key={s.title} service={s} />);
+}
+```
+
+Site-level config — nav links, socials — moves to `lib/site.ts` the same way. The
+test is simple: **could you hand this list to a different layout without
+copy-pasting?** If not, it's in the wrong place.
+
+## Extract the repeated block into a primitive
+
+Some markup isn't a full component but a *shape* repeated across the site:
+`relative aspect-… overflow-hidden rounded-[20px]` with an absolute gradient or
+video fill appeared in every card, the showreel, and the blog list. Each copy is
+a chance to drift. Promote the shape to a primitive:
+
+| Primitive | Replaces (repeated in) |
+|---|---|
+| `SectionHeading` | the `display-xl` `h2` + `mb-14 md:mb-20 lg:mb-28` in three sections |
+| `SectionCta` | the centered closing `PillButton` block in the same three |
+| `MediaFrame` | the clipped rounded media tile in every card, showreel, blog list |
+| `BlogPostCard` | the blog item duplicated in the home preview **and** the index |
+| `PageHero` | five near-identical page heroes |
+
+`MediaFrame` is the representative case — one component owns the radius, the clip,
+and the fill, so the eight hand-rolled versions collapse into:
+
+```tsx
+<MediaFrame aspect="video">{/* gradient / <video> / <Image> */}</MediaFrame>
+```
+
+Now the media radius is **one decision in one file**. And consolidating `PageHero`
+does something extra: it fixes a real accessibility bug in five places at once —
+which brings us to the second half of architecture.
+
+## Semantic HTML is architecture too
+
+Clean structure isn't only about deduplication. It's about the document being
+*honest* — the markup saying what each thing actually is, so assistive tech and
+search engines read it correctly. The audit turned up an inverted outline on
+several pages:
+
+```
+services/Hero   h1 "Our services"  (tiny kicker)   ← should NOT be the h1
+                h2 "Going beyond…"  (huge headline)  ← this is the real h1
+```
+
+The small kicker was the `<h1>` and the giant headline was an `<h2>` — the outline
+was upside-down. The target is unambiguous: **the prominent headline is the
+`<h1>`; the kicker is a `<p className="eyebrow">`; exactly one `<h1>` per page.**
+Fixing it inside one shared `PageHero` corrects every page in a single change —
+which is the whole argument for primitives, restated in the accessibility domain.
+
+A few more semantic rules we hold:
+
+- **Self-contained units are `<article>`.** A blog card or project card is a
+  syndicatable thing — it gets `<article>`, not `<a><div>`.
+- **Sections are named landmarks.** Give each section heading an `id` and set
+  `aria-labelledby` on the `<section>`, so screen-reader users can navigate
+  between distinguishable regions instead of a wall of unnamed `<section>`s.
+- **Consistent heading levels.** Card titles are all `<h3>` or none are — so the
+  outline reads cleanly `h1 → h2 (section) → h3 (card)`.
+
+The target outline for every page, written down so it's checkable:
+
+```
+<main>
+  h1                          — the page headline (one per page, from PageHero)
+  section[aria-labelledby]
+    h2                        — section title (SectionHeading)
+      article
+        h3                    — card / post title
+<footer>
+  h2                          — the "Have an idea?" CTA
+```
+
+## Refactor in dependency order
+
+The order matters as much as the moves. Do the thing that *unblocks* the most
+next, and let each step shrink the surface of the one after:
+
+1. **Consolidate the duplicates** and delete dead files — removes whole files of
+   noise before you touch anything else.
+2. **Build `PageHero`** — DRYs five heroes *and* fixes the heading inversion in
+   one stroke.
+3. **Build the shared primitives** (`SectionHeading`, `SectionCta`, `MediaFrame`,
+   `BlogPostCard`) — collapses the repeated markup.
+4. **Adopt the container primitive** on the remaining pages; apply the responsive
+   spacing ramp as you go.
+5. **Lift inline data** into `lib/`.
+6. **Add `aria-labelledby` + `<article>`** — cheap and obvious once the
+   primitives exist.
+7. **Promote the last magic numbers** (the media radius) to tokens, applied
+   through the primitive.
+
+And the non-negotiable: **build and typecheck after every step.** A refactor that
+"will all come together at the end" is a refactor you can't trust. One green step
+at a time, behavior preserved, is the only way a large cleanup stays honest.
+
+## The principle underneath all of it
+
+Every pattern here is the same instinct wearing different clothes: **one source of
+truth per concept.** One card component. One copy of `gradientFor`. One place each
+list lives. One hero that owns the heading hierarchy. One container that owns the
+gutters. One token for the radius.
+
+Drift is what happens when a concept ends up with two homes. Clean architecture
+isn't a framework or a folder structure — it's the steady refusal to let that
+happen, and the willingness to pull it back to one when it does.

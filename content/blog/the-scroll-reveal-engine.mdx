@@ -1,0 +1,266 @@
+---
+title: "The Scroll-Reveal Engine — One Hook, Many Entrances"
+category: "Dev Source"
+date: "2026-05-31"
+excerpt: "How we reveal headings word-by-word and lift blocks into view as you scroll — built on one tiny IntersectionObserver hook, with the motion living entirely in CSS."
+author: "The Studio"
+---
+
+Two kinds of motion do most of the work on this site. Headlines rise into place
+**a word at a time**, each letter climbing out from a clipped baseline. And
+blocks — cards, media, paragraphs — **lift and fade** as they cross into view.
+
+Both look like the kind of thing you'd reach for a scroll library to do. Neither
+needs one. The whole engine is a ten-line hook that flips a single attribute, and
+CSS that does the animating. That split — **JavaScript decides *when*, CSS decides
+*how*** — is what keeps it fast and easy to reason about.
+
+<Figure type="video" placeholderKey="reveal-demo" alt="headings revealing word by word and blocks lifting into view on scroll" caption="Headlines rising a word at a time, and blocks lifting into place as they cross into view." />
+
+
+## Principle: the smallest possible JavaScript
+
+The temptation with scroll animation is to measure things on every frame —
+positions, velocities, progress ratios — and write inline styles from
+JavaScript. That's a lot of main-thread work for "fade something in once."
+
+We do the opposite. JavaScript's *only* job is to answer one boolean: **has this
+element entered the viewport yet?** When the answer flips to yes, we set
+`data-shown="true"` and never touch the element again. Everything visual — the
+transform, the opacity, the easing, the delay — is a CSS rule keyed on that
+attribute.
+
+## The hook: `useInView`
+
+`IntersectionObserver` tells you when an element crosses a threshold without any
+scroll listener or per-frame math. We wrap it so it fires **once**, then
+disconnects:
+
+```ts
+"use client";
+import { useEffect, useRef, useState } from "react";
+
+export function useInView({
+  rootMargin = "0px 0px -12% 0px", // must clear the bottom edge by 12%
+  threshold = 0,
+} = {}) {
+  const ref = useRef(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || shown) return;
+
+    // No IntersectionObserver (old browser / SSR edge) → just show next frame.
+    if (typeof IntersectionObserver === "undefined") {
+      const id = requestAnimationFrame(() => setShown(true));
+      return () => cancelAnimationFrame(id);
+    }
+
+    const io = new IntersectionObserver(
+      ([entry], obs) => {
+        if (entry.isIntersecting) {
+          setShown(true);
+          obs.disconnect(); // reveal once, then stop watching
+        }
+      },
+      { threshold, rootMargin },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [shown, rootMargin, threshold]);
+
+  return { ref, shown };
+}
+```
+
+Two decisions worth calling out:
+
+- **`rootMargin: "0px 0px -12% 0px"`** shrinks the viewport's bottom edge up by
+  12%, so a block has to climb a little *past* the fold before it counts as "in."
+  Reveals fire when an element is comfortably on screen, not the instant its top
+  pixel peeks in. That small offset is the difference between "alive" and
+  "twitchy."
+- **`obs.disconnect()`** the moment it shows. These reveals are one-shot — they
+  don't replay on scroll-up — so there's no reason to keep observing. Zero idle
+  cost after the element has appeared.
+
+## The wrapper: `<InView>`
+
+The hook returns a `ref` and a `shown` flag. A thin wrapper attaches them and
+writes the attribute. It also forwards a few CSS variables so each instance can
+tune its own distance, delay, and timing without new classes:
+
+```tsx
+"use client";
+import { useInView } from "./useInView";
+
+const VARIANT_CLASS = {
+  fade:  "reveal-fade",
+  scale: "reveal-scale",
+  up:    "reveal-up-soft",
+};
+
+export default function InView({
+  children, className = "",
+  variant = "up", y = 28, scaleFrom = 0.94,
+  delay = 0, duration, ease,
+}) {
+  const { ref, shown } = useInView();
+
+  // Emit overrides only when given, so unset props fall through to :root.
+  const overrides = {
+    "--reveal-y": `${y}px`,
+    "--reveal-scale-from": scaleFrom,
+    "--reveal-delay": `${delay}ms`,
+  };
+  if (duration !== undefined)
+    overrides["--reveal-duration"] =
+      typeof duration === "number" ? `${duration}ms` : duration;
+  if (ease !== undefined) overrides["--reveal-ease"] = ease;
+
+  return (
+    <div
+      ref={ref}
+      data-shown={shown ? "true" : "false"}
+      className={`${VARIANT_CLASS[variant]} ${className}`}
+      style={overrides}
+    >
+      {children}
+    </div>
+  );
+}
+```
+
+The presets — `RevealFade`, `RevealScale`, `RevealUp` — are one-line wrappers
+that pin a `variant`. Same engine, different resting transform.
+
+## The CSS: three variants, one timing system
+
+Each variant starts displaced and transparent, then `data-shown="true"` releases
+it to its natural place. The timing comes from CSS variables with sensible
+`:root` defaults, so the wrapper only overrides what it needs:
+
+```css
+:root {
+  --reveal-duration: 0.85s;
+  --reveal-ease: cubic-bezier(0.16, 1, 0.3, 1); /* a confident ease-out */
+}
+
+.reveal-fade,
+.reveal-scale,
+.reveal-up-soft {
+  opacity: 0;
+  transition:
+    opacity   var(--reveal-duration) var(--reveal-ease) var(--reveal-delay, 0ms),
+    transform var(--reveal-duration) var(--reveal-ease) var(--reveal-delay, 0ms);
+}
+.reveal-scale    { transform: scale(var(--reveal-scale-from, 0.94)); }
+.reveal-up-soft  { transform: translateY(var(--reveal-y, 28px)); }
+
+.reveal-fade[data-shown="true"],
+.reveal-scale[data-shown="true"],
+.reveal-up-soft[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+```
+
+We only ever animate `opacity` and `transform` — the two properties the browser
+can composite on the GPU without touching layout. That's the single most
+important performance rule in web motion, and the engine enforces it by never
+offering a knob that would break it.
+
+## Revealing a headline, one word at a time
+
+The block reveal lifts a whole element. The headline reveal is more delicate:
+split the text into words, wrap each in a clipping box, and let each word climb
+out of its own box on a staggered delay. Because it's pure CSS with no measuring,
+it renders fine in a **Server Component**:
+
+```tsx
+import { Fragment } from "react";
+
+export default function RevealText({
+  text, className = "", stagger = 0.06, delay = 0, as: Tag = "span", id,
+}) {
+  const words = text.split(" ");
+  return (
+    <Tag id={id} aria-label={text} className={className}>
+      {words.map((word, i) => (
+        <Fragment key={`${word}-${i}`}>
+          <span aria-hidden className="reveal-word">
+            <span style={{ animationDelay: `${delay + i * stagger}s` }}>
+              {word}
+            </span>
+          </span>{" "}
+        </Fragment>
+      ))}
+    </Tag>
+  );
+}
+```
+
+The CSS clips each word and slides it up from 110% below its own baseline:
+
+```css
+@keyframes word-rise {
+  from { transform: translateY(110%); }
+  to   { transform: translateY(0); }
+}
+.reveal-word {
+  display: inline-block;
+  overflow: clip;       /* the mask the word climbs out of */
+  vertical-align: top;
+  margin: -0.18em;      /* cancel the padding below so lines still sit tight */
+}
+.reveal-word > span {
+  display: inline-block;
+  padding: 0.18em;      /* breathing room so descenders aren't clipped */
+  transform: translateY(110%);
+  animation: word-rise var(--word-duration) var(--word-ease) forwards;
+}
+```
+
+The `padding: 0.18em` / `margin: -0.18em` pair is the quiet trick: the padding
+gives descenders (g, y, p) room inside the clip so they aren't shaved off, and
+the negative margin cancels that padding in layout so the heading's line spacing
+stays exactly as designed. Note too the `aria-label` on the wrapper with
+`aria-hidden` on the animated spans — screen readers get the clean string, not a
+pile of disconnected words.
+
+## Accessibility is in the CSS, not in branches
+
+Because the look lives in CSS, the fallbacks do too — no JavaScript conditionals.
+
+```css
+/* No JS at all → never leave content hidden. */
+@media (scripting: none) {
+  .reveal-fade, .reveal-scale, .reveal-up-soft { opacity: 1; transform: none; }
+}
+
+/* Reduced motion → content is simply present, no entrance. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up, .reveal-fade, .reveal-scale, .reveal-up-soft {
+    opacity: 1; transform: none; transition: none;
+  }
+}
+```
+
+If JavaScript never runs, `data-shown` never flips — so without these rules the
+page would stay invisible forever. The `@media (scripting: none)` block is the
+safety net that makes the whole thing degrade to plain, readable HTML.
+
+## Why this scales
+
+- **One hook** is the entire JS surface. Every entrance on the site — words,
+  fades, scales, rises — flows through `useInView` and behaves identically.
+- **CSS owns the motion**, so adding a variant is a new class, not new logic, and
+  every animation is GPU-friendly by construction.
+- **It reveals once and disconnects**, so a long page with fifty reveals has
+  zero scroll cost after they've played.
+- **Server-rendered headlines.** `RevealText` measures nothing, so it ships from
+  the server with the rest of the page.
+
+Decide *when* in JavaScript, describe *how* in CSS, and let the platform do the
+animating. That division is the whole engine.

@@ -1,0 +1,184 @@
+---
+title: "Building a Design System in Tailwind v4"
+category: "Design Course"
+date: "2026-05-29"
+excerpt: "One ink/paper palette, a responsive type ramp that steps down without a single breakpoint variant, and layout primitives that end the copy-pasted container. The system behind this site."
+author: "The Studio"
+---
+
+A design system isn't a component library. It's a set of decisions, made once,
+that every later decision defers to. Ours fits on a page: one typeface, a pure
+black-and-white palette, a responsive type ramp, a handful of geometry tokens,
+and two layout primitives. Everything on the site is built from that vocabulary.
+
+This is how it's wired in **Tailwind v4** — where the config has moved out of a
+JavaScript file and into CSS via `@theme` — and, more importantly, *why* it's
+shaped this way.
+
+## Identity in one line
+
+A black/white **editorial** look — one variable typeface, a pure `ink`/`paper`
+palette, tight negative tracking on display type, generous space, and **no drop
+shadows**. Depth comes from layered light on rounded panels, never from blur.
+
+Stating the identity in a sentence is the most useful thing a system does. Every
+ambiguous call later — *should this have a shadow? a second font? a blue accent?*
+— is already answered. The rule is **additive, not decorative**: tokens may exist
+that aren't used by default; reaching for one is a deliberate act, not a reflex.
+
+## Tokens live in CSS now
+
+Tailwind v4 reads your theme from an `@theme` block in CSS. Define a token there
+and you get the utility for free:
+
+```css
+@theme {
+  --color-ink: #000000;   /* → text-ink, bg-ink, border-ink, text-ink/70 … */
+  --color-paper: #ffffff; /* → text-paper, bg-paper, text-paper/70 … */
+}
+```
+
+That's the entire brand palette. `text-ink/70` for muted text, `text-paper` on
+dark panels. Two colors, used with conviction, read as far more considered than a
+twelve-step gray scale used without one.
+
+## The type ramp: responsive from a single class
+
+Here's the idea that does the most work. A heading shouldn't need
+`text-4xl md:text-5xl lg:text-7xl` smeared across every call site — that's the
+*same decision* (how big is a hero?) re-litigated in markup everywhere it appears.
+Make the size token itself responsive, and one class carries the whole ramp.
+
+We drive a CSS variable and **redefine it at breakpoints in `:root`**, so the
+utility that reads it steps down automatically:
+
+```css
+@theme {
+  --text-apple-hero: 56px;
+  --text-apple-headline: 40px;
+  --text-apple-subhead: 24px;
+  --text-apple-body: 17px;
+}
+
+/* the ramp steps down on tablet, then phone — with no md:/lg: variants */
+@media (max-width: 1023px) {
+  :root { --text-apple-hero: 48px; --text-apple-headline: 36px; }
+}
+@media (max-width: 833px) {
+  :root {
+    --text-apple-hero: 40px;
+    --text-apple-headline: 32px;
+    --text-apple-subhead: 20px;
+    --text-apple-body: 16px;
+  }
+}
+```
+
+Now `text-apple-hero` is 56 → 48 → 40 across desktop, tablet, phone — and the
+markup never says so. The big editorial headline works the same way through a
+`.display-xl` class that steps `~88px → 64px → 44px` at the same two breakpoints.
+Change the ramp once in `:root`, and every headline on the site moves with it.
+
+## Type tokens travel together
+
+A size is never just a size. At 88px, type wants to be pulled **tight** —
+negative tracking, leading near 1.0 — or it reads loose and amateur. At 17px it
+wants a little air and roomy line-height or it's a wall. So in this system a size
+token always travels with its tracking and leading:
+
+```css
+@theme {
+  --tracking-apple-hero: -0.035em;   /* big type pulls tight */
+  --tracking-apple-body: -0.022em;
+  --leading-apple-hero: 1.07;        /* headlines breathe near 1.0 */
+  --leading-apple-body: 1.47;        /* body relaxes */
+}
+```
+
+The rule when building: pair a `text-apple-*` size with its matching
+`tracking-apple-*` and `leading-apple-*`. Three tokens, applied together, are the
+difference between type that's merely the right size and type that's *set*.
+
+## Geometry as tokens
+
+Radii are tokens too, so "the media corner radius" is one decision, not a magic
+number scattered across a dozen files:
+
+```css
+@theme {
+  --radius-media: 20px;        /* → rounded-media, on every media tile */
+  --radius-apple-card: 18px;   /* → rounded-apple-card */
+}
+```
+
+When a `20px` radius appears in eight components by hand, changing it is eight
+edits and a guarantee you'll miss one. As `rounded-media` applied through a single
+`MediaFrame` component, it's one edit. **A repeated literal is a token waiting to
+be named.**
+
+## Spacing by proportion, not by pixel
+
+Cramped phones taught us not to hard-code big spacing. Two patterns replace fixed
+gaps. First, **font-relative** stacked margins — space scales with the type it
+follows, so the rhythm holds at any size:
+
+```html
+<!-- a headline after a paragraph block -->
+<h2 class="mt-[1.6em]">…</h2>
+<!-- a sub-element after a header -->
+<p class="mt-[0.8em]">…</p>
+```
+
+Second, a **three-step responsive rhythm** every section follows — phone, tablet,
+desktop:
+
+```html
+<h2 class="mb-14 md:mb-20 lg:mb-28">…</h2>   <!-- heading → content -->
+<div class="gap-12 md:gap-16 lg:gap-24">…</div> <!-- card grids -->
+<div class="my-20 md:my-28 lg:my-32">…</div>    <!-- CTA blocks -->
+```
+
+Big fixed numbers feel generous on a 27" display and suffocating on a phone. The
+ramp keeps the *proportions* constant while the absolute values shrink — which is
+what "responsive" should have meant all along.
+
+## Two primitives end the copy-pasted container
+
+Before primitives, four slightly-different container strings drifted across the
+codebase — `max-w-[1600px] px-6 md:px-12 lg:px-60` and three near-misses. Each
+near-miss is a layout bug nobody chose. So container width and gutters became a
+**single component**:
+
+```tsx
+<Container>…</Container>               {/* px-6 md:px-12 lg:px-60, max-w-[1600px] */}
+<Container width="wide">…</Container>  {/* tighter gutters for media-led sections */}
+```
+
+And `Section` owns vertical rhythm and the panel variants — including the
+stacked-panel look where a rounded section pulls up over the previous one:
+
+```tsx
+<Section variant="overlap" bg="ink" labelledBy="work-title">…</Section>
+```
+
+The payoff is subtle but compounding: when the gutter needs to change, it changes
+in **one file** and every page moves together. A container string pasted into
+twenty files is twenty chances to be wrong; a primitive is one chance to be right.
+
+## The guardrails
+
+A system is only as good as the lines it won't cross. Ours:
+
+1. **No drop shadows.** Depth is layered light on rounded panels, not blur.
+2. **Keep the ink/paper brand.** The off-white and system-blue tokens exist for
+   deliberate use — they are not the default palette.
+3. **Type tokens travel together** — size with its tracking and leading.
+4. **Containers come from the primitive**, never a fresh `mx-auto max-w-… px-…`.
+5. **The typeface stays self-hosted** — no surprise CDN imports.
+
+None of these are arbitrary. Each one closes off a way the site could quietly
+drift toward generic. A design system's real job isn't to make the first screen
+look good — it's to make the *hundredth* screen, built months later under
+deadline, still look like it belongs. Write the vocabulary down, build only from
+it, and consistency stops being a thing you police and becomes a thing you get
+for free.

@@ -564,6 +564,13 @@ html[data-reveal="wait"] .nav-reveal {
   margin: 0;
 }
 
+/* Code-block copy button: a real UI control, so show the native pointer (hand)
+   rather than the editorial blend cursor. The data-cursor="-hidden" on the
+   button collapses the follower dot; this guarantees the system pointer. */
+.code-copy-btn {
+  cursor: pointer;
+}
+
 /* The page-transition look (`::view-transition-*`) is injected as a raw \3c style>
    tag from components/transition/TransitionProvider.tsx — Turbopack's dev CSS
    pipeline strips `::view-transition` rules from processed stylesheets, so they

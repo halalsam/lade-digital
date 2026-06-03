@@ -1,17 +1,32 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import rehypePrettyCode, {
+  type Options as RehypePrettyCodeOptions,
+} from "rehype-pretty-code";
 import Navbar from "@/components/shared/Navbar";
 import GetInTouch from "@/components/shared/GetInTouch";
 import CtaFooter from "@/components/shared/CtaFooter";
 import RevealText from "@/components/shared/RevealText";
 import Reveal from "@/components/shared/Reveal";
+import CodeBlock from "@/components/blog/CodeBlock";
+import Figure from "@/components/blog/Figure";
 import Link from "@/components/transition/TransitionLink";
 import { getPost, getPostSlugs, formatDate } from "@/lib/blog";
 import { gradientFor } from "@/lib/gradient";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 type Params = { slug: string };
+
+// Server-side syntax highlighting (Shiki, via rehype-pretty-code). Runs at
+// render/build time → highlighted markup ships as static HTML with zero client
+// JS. One dark theme so code sits on the ink/paper editorial palette; the copy
+// button (CodeBlock) is the only client-side piece of a code block.
+const rehypePrettyCodeOptions: RehypePrettyCodeOptions = {
+  theme: "github-dark",
+  keepBackground: true, // let the theme paint the block background
+  bypassInlineCode: true, // leave inline `code` plain → styled as a pill below
+};
 
 // Pre-render every post at build time (file-based, so the set is known).
 export async function generateStaticParams(): Promise<Params[]> {
@@ -75,6 +90,37 @@ const components = {
   strong: (props: React.ComponentProps<"strong">) => (
     <strong className="font-semibold opacity-100" {...props} />
   ),
+  // Fenced ```code``` blocks: rehype-pretty-code (Shiki) emits the highlighted
+  // <pre><code> with inline token colors + a dark background. CodeBlock (client)
+  // wraps that <pre> to add the copy button and scroll/padding — it must NOT
+  // restyle the colors, so Shiki's highlighting survives.
+  pre: (props: React.ComponentProps<"pre">) => <CodeBlock {...props} />,
+  // Only INLINE `code` gets the pill. rehype-pretty-code stamps the highlighted
+  // block <code> with data-language; inline code (bypassed above) has none — so
+  // "no data-language" === inline. Block <code> is left bare to keep its tokens.
+  code: (props: React.ComponentProps<"code"> & { "data-language"?: string }) =>
+    props["data-language"] === undefined ? (
+      <code
+        className="rounded bg-ink/[0.07] px-1.5 py-0.5 text-[0.9em]"
+        {...props}
+      />
+    ) : (
+      <code {...props} />
+    ),
+  // Markdown images render through the same framed, captioned media tile as a
+  // direct <Figure/>. `alt` carries the caption.
+  img: (props: React.ComponentProps<"img">) => (
+    <Figure src={props.src as string} alt={props.alt} caption={props.alt} />
+  ),
+  blockquote: (props: React.ComponentProps<"blockquote">) => (
+    <blockquote
+      className="mt-8 border-l-2 border-ink/20 pl-6 text-lg italic leading-relaxed opacity-70"
+      {...props}
+    />
+  ),
+  hr: () => <hr className="my-14 border-ink/10" />,
+  // Available directly in MDX as <Figure .../> for image/video placeholders.
+  Figure,
 };
 
 export default async function BlogPostPage({
@@ -144,7 +190,17 @@ export default async function BlogPostPage({
             </Reveal>
 
             <div className="mt-16">
-              <MDXRemote source={post.content} components={components} />
+              <MDXRemote
+                source={post.content}
+                components={components}
+                options={{
+                  mdxOptions: {
+                    rehypePlugins: [
+                      [rehypePrettyCode, rehypePrettyCodeOptions],
+                    ],
+                  },
+                }}
+              />
             </div>
           </div>
         </article>

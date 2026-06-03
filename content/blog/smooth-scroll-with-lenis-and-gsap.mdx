@@ -1,0 +1,127 @@
+---
+title: "Smooth Scroll Without the Second rAF Loop"
+category: "Dev Source"
+date: "2026-05-25"
+excerpt: "Lenis gives you that weighted, eased scroll — but pair it with GSAP naively and you run two animation loops. Here's how to drive both from one ticker, and reset cleanly on navigation."
+author: "The Studio"
+---
+
+Smooth scroll is one of those effects that's invisible when right and nauseating
+when wrong. [Lenis](https://github.com/darkroomengineering/lenis) gives you the
+good kind — a weighted, eased scroll that tracks the wheel without the syrupy lag
+that makes people reach for the scrollbar. But if your site already uses GSAP,
+the obvious setup quietly runs **two** `requestAnimationFrame` loops, and the two
+can desync. Here's the version that runs one.
+
+## The problem: two libraries, two loops
+
+GSAP runs its own rAF loop — its "ticker" — to drive every tween. Lenis, by
+default, spins up its *own* rAF loop to advance the scroll each frame. Use both
+out of the box and you've got two independent loops doing per-frame work, with no
+guarantee they run in the same frame. Any scroll-linked GSAP animation can lag a
+frame behind the scroll position it's supposed to follow.
+
+The fix is to let GSAP's ticker be the **single** loop and step Lenis from it.
+
+## One ticker drives both
+
+Turn off Lenis's auto loop, then add an updater to GSAP's ticker that advances
+Lenis every frame. The only papercut: GSAP's ticker time is in **seconds**, Lenis
+wants **milliseconds**:
+
+```tsx
+"use client";
+import { ReactLenis, type LenisRef } from "lenis/react";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+
+export default function SmoothScroll({ children }) {
+  const lenisRef = useRef<LenisRef>(null);
+
+  useEffect(() => {
+    const update = (time: number) => {
+      lenisRef.current?.lenis?.raf(time * 1000); // seconds → ms
+    };
+    gsap.ticker.add(update);
+    // GSAP smooths delta time by default; disable so scroll tracks the wheel 1:1.
+    gsap.ticker.lagSmoothing(0);
+    return () => gsap.ticker.remove(update);
+  }, []);
+
+  return (
+    <ReactLenis
+      root
+      ref={lenisRef}
+      options={{
+        duration: 1.1,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+        syncTouch: false,
+        autoRaf: false, // ← the key line: we drive rAF ourselves
+      }}
+    >
+      {children}
+    </ReactLenis>
+  );
+}
+```
+
+Two settings carry the feel:
+
+- **`autoRaf: false`** is the whole point — it stops Lenis from starting its own
+  loop, so GSAP's ticker is the only one running. One loop per frame for both
+  libraries, perfectly in sync, and any future ScrollTrigger work stays glued to
+  the scroll position.
+- **`lagSmoothing(0)`** tells GSAP not to massage delta time. GSAP normally
+  smooths frame timing, but for scroll you want the wheel tracked 1:1 — smoothing
+  there feels like drift.
+
+The `easing` is an exponential ease-out, and `duration: 1.1` is tuned to feel the
+same on a 60Hz and a 120Hz display rather than twice as fast on the faster panel.
+
+## Reset on navigation
+
+Lenis keeps its *own* virtual scroll position, separate from the browser's. If
+your app does client-side route changes, that virtual position doesn't
+automatically snap back — land on a new page and you can find yourself scrolled
+halfway down where the last page was. So on every pathname change, jump Lenis to
+the top without animating:
+
+```tsx
+const pathname = usePathname();
+useEffect(() => {
+  lenisRef.current?.lenis?.scrollTo(0, { immediate: true });
+}, [pathname]);
+```
+
+`{ immediate: true }` is important — you want an instant reset, not a 1.1-second
+glide up from the previous scroll position while the new page is already
+rendering.
+
+## Give reduced-motion users the native scroll
+
+Smooth scroll is an enhancement, and some people actively don't want it —
+hijacked scroll is a common motion-sickness trigger. Honour the system
+preference by handing those users native scrolling:
+
+```tsx
+const reduced =
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// in options:
+smoothWheel: !reduced,
+```
+
+When `reduced` is true, `smoothWheel` is off and the browser scrolls normally —
+no interception, no easing, exactly what the user asked for.
+
+## The takeaways
+
+- **`autoRaf: false`** and step Lenis from GSAP's ticker — one loop, never two.
+- **`lagSmoothing(0)`** so scroll tracks the wheel 1:1.
+- **Reset to the top** on every internal navigation, with `immediate: true`.
+- **`smoothWheel: !reduced`** so reduced-motion users get the native scroll.
+
+Smooth scroll should feel like the page has a little mass — not like it's fighting
+you, and never like it's running on two clocks at once.

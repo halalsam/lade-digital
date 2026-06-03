@@ -31,13 +31,7 @@ export default function ContactsPage() {
           eyebrow="Get in touch"
           title="Let’s build something beyond what’s possible"
         >
-          <PillButton
-            href="mailto:info@lade.digital"
-            label="Tell us about your project"
-            variant="ink"
-            size="lg"
-            external
-          />
+     
         </PageHero>
         <Reveal>
           <ContactForm />

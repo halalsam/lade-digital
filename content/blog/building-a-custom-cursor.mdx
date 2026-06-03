@@ -1,0 +1,252 @@
+---
+title: "Building a Custom Cursor That Earns Its Keep"
+category: "Dev Source"
+date: "2026-05-30"
+excerpt: "A lerped follower that skews toward its travel, morphs into whatever you hover, parks itself when idle, and never leaves a stuck state. The full build of the cb-cursor."
+author: "The Studio"
+---
+
+A custom cursor is one of those touches that makes a site feel hand-crafted —
+when it's done with restraint. Ours keeps the **native cursor visible** and adds
+a small accent dot that trails it, leans into its own movement, and morphs into a
+label, a thumbnail, or an icon depending on what you're hovering. When you stop
+moving, it parks itself and costs nothing.
+
+This is the whole thing: the follow loop, the skew, the declarative hover API,
+and — the part most custom cursors get wrong — never getting stuck.
+
+<Figure type="video" placeholderKey="cursor-motion" alt="the cursor trailing, skewing, and morphing on hover" caption="The follower trailing the pointer, leaning into its travel, and morphing as it hovers different targets." />
+
+
+## The shape
+
+A fixed, `pointer-events: none` element with an inner body and a content slot:
+
+```tsx
+<div className="cb-cursor">          {/* GSAP moves this: x / y / rotation */}
+  <div className="cb-cursor-inner">  {/* GSAP skews this: skewX / rotation */}
+    <span className="cb-cursor-content">{content}</span>
+  </div>
+</div>
+```
+
+```css
+.cb-cursor {
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;   /* never blocks a click */
+  z-index: 9999;
+}
+```
+
+One rule we never break: **GSAP owns the `transform` of `.cb-cursor` and
+`.cb-cursor-inner`.** If CSS also writes `transform` on them, the two fight and
+the cursor jitters. Size changes animate `width`/`height`/`margin`; the content
+slot scales independently. Keep transforms for the JS, geometry for the CSS, and
+the two never collide.
+
+## The follow loop: lerp, don't track
+
+If the dot sat exactly on the pointer it would feel glued and lifeless. Instead
+it **lerps** (linearly interpolates) toward the pointer a fraction each frame, so
+it trails with a natural, weighted lag:
+
+```ts
+const LAG = 0.18; // 0–1, higher = tighter follow
+
+let px = 0, py = 0;   // pointer
+let cx = 0, cy = 0;   // cursor (eased)
+
+function frame() {
+  cx += (px - cx) * LAG;  // ease toward the pointer
+  cy += (py - cy) * LAG;
+  setCursor(cx, cy);      // gsap.quickSetter, bound once
+  // …skew (below)…
+  loop();
+}
+```
+
+`cx += (px - cx) * LAG` is the entire physics. Each frame closes 18% of the gap
+to the pointer — fast enough to feel responsive, slow enough to feel like it has
+weight.
+
+For the per-frame write we use `gsap.quickSetter`, bound **once** outside the
+loop, and mutate plain numbers rather than allocating objects every frame. The
+hot path stays allocation-free, which is what keeps a 120Hz display smooth:
+
+```ts
+const setX = gsap.quickSetter(el, "x", "px");
+const setY = gsap.quickSetter(el, "y", "px");
+const setCursor = (x, y) => { setX(x); setY(y); };
+```
+
+## Skew: lean into the travel
+
+What turns a follower into something that feels *alive* is a directional skew.
+The faster it moves, the more the body leans toward where it's going — then eases
+back to flat as it settles. We derive velocity from the gap it just closed and
+clamp it:
+
+```ts
+const SKEW_K = 0.9;    // velocity → skew degrees
+const MAX_SKEW = 14;   // clamp, degrees
+
+const vx = px - cx, vy = py - cy;          // this frame's velocity
+const speed = Math.hypot(vx, vy);
+const skew = Math.max(-MAX_SKEW, Math.min(MAX_SKEW, speed * SKEW_K));
+const angle = Math.atan2(vy, vx) * (180 / Math.PI);
+
+skewSetter(skew);        // skewX on .cb-cursor-inner
+rotateSetter(angle);     // point the lean along travel
+```
+
+There's a second, subtler source of motion: **scroll**. When the page scrolls
+under a still pointer, the dot should lean as content rushes past, even though
+the pointer hasn't moved. So a wheel listener injects a decaying skew:
+
+```ts
+const SCROLL_K = 0.05;     // wheel delta → skew
+const SCROLL_DECAY = 0.82; // per-frame falloff toward flat
+
+let scrollSkew = 0;
+addEventListener("wheel", (e) => { scrollSkew += e.deltaY * SCROLL_K; });
+
+// each frame:
+scrollSkew *= SCROLL_DECAY; // eases back to 0 on its own
+```
+
+These constants are the cursor's whole personality. Drop `LAG` for a heavier
+trail, raise `MAX_SKEW` for a more theatrical lean — the feel is five numbers at
+the top of the file.
+
+## Park when idle
+
+A `requestAnimationFrame` loop running forever is wasted battery when nothing
+moves. So the loop is **on-demand**: pointer-move and wheel events start it, and
+it **parks itself** once the dot has caught up and both pointer- and
+scroll-velocity hit zero:
+
+```ts
+let running = false;
+function loop() {
+  const settled =
+    Math.hypot(px - cx, py - cy) < 0.1 && Math.abs(scrollSkew) < 0.1;
+  if (settled) { running = false; return; } // park — no more frames
+  requestAnimationFrame(loop);
+}
+function kick() { if (!running) { running = true; requestAnimationFrame(loop); } }
+
+addEventListener("pointermove", (e) => { px = e.clientX; py = e.clientY; kick(); });
+addEventListener("wheel", kick);
+```
+
+An idle pointer costs **zero** per-frame work. The loop only exists while there's
+something to animate.
+
+## The hover API: declarative, event-delegated
+
+A cursor is only useful if elements can change it. We expose three layers, from
+zero-wiring to full control. The common cases are just **data attributes**,
+picked up by a single delegated listener on the document — so dynamically
+rendered and page-transitioned content works with no per-element setup:
+
+```tsx
+// a text label inside the cursor
+<a href="/contact" data-cursor-text="Say hi">Contact</a>
+
+// a state class only (ring / blend / scale…)
+<button data-cursor="-blend">Toggle</button>
+
+// an image or video preview (file extension picks <img> vs <video>)
+<li data-cursor-media="/projects/aurora.jpg">Aurora</li>
+```
+
+```ts
+// one listener for the whole page
+document.addEventListener("pointerover", (e) => {
+  const el = e.target.closest("[data-cursor], [data-cursor-text], [data-cursor-media]");
+  if (!el) return;
+  if (el.dataset.cursor)      addStateClass(el.dataset.cursor);
+  if (el.dataset.cursorText)  showText(el.dataset.cursorText);
+  if (el.dataset.cursorMedia) showMedia(el.dataset.cursorMedia);
+});
+```
+
+For a **JSX** cursor — an icon, a badge, a whole component — data attributes
+can't help (they're strings only), so there's a `<Cursor>` wrapper:
+
+```tsx
+import { Cursor } from "@/components/cursor/CursorProvider";
+import { ArrowUpRight } from "lucide-react";
+
+<Cursor content={<ArrowUpRight />} className="-ring">
+  <a href="/work">See our work</a>
+</Cursor>;
+```
+
+And for the rare case you can't wrap the target, an imperative `useCursor()` hook
+whose `set()` returns a **reset function** you call on leave. Calls nest, so the
+most recently set, still-active state wins when hover regions overlap.
+
+## The hard part: never get stuck
+
+This is where most custom cursors fall down. A cursor set on hover has to reset on
+leave — and `onPointerLeave` quietly misses two cases:
+
+1. The pointer leaves **fast to empty space**, between event samples.
+2. The element **scrolls out from under a stationary pointer** — no leave event
+   fires at all, because the pointer never moved.
+
+Miss either and the cursor stays stuck in its hovered state until something else
+happens to change it. The fix is to give the cursor an **`owner`** — the element
+it's currently reacting to — and let the provider auto-clear the instant the
+pointer is no longer over that element:
+
+```ts
+type CursorState = {
+  content?: ReactNode;
+  className?: string;
+  owner?: Element | null; // the hovered element → provider auto-clears on leave
+};
+```
+
+The `<Cursor>` wrapper passes `owner` for you (which is why it "just works"); with
+the hook you pass it yourself. On top of that, two safety nets cover the rest:
+
+- **Re-resolve hover on scroll.** When the page scrolls beneath a *still*
+  pointer, a throttled `elementFromPoint` hit-test re-checks what's underneath —
+  so a target scrolling *into* place activates, and one scrolling *away* clears,
+  with no pointer move.
+- **Reset on route change.** A target that animates away during a page
+  transition can't leave the cursor stranded.
+
+Between `owner`, the scroll hit-test, and the route-change reset, there is no path
+that leaves the dot stuck. That robustness — not the skew — is what separates a
+cursor you ship from a cursor you rip out a week later.
+
+<Figure placeholderKey="cursor-states" alt="the cursor states: filled pill, ring, blend, media thumbnail" caption="The state set: a filled pill by default, a hollow ring, a difference-blend, and a larger media thumbnail frame." />
+
+## Know when to switch it off
+
+A cursor accent is meaningless on a touchscreen and unwelcome under reduced
+motion. Gate it in CSS so it never even initializes where it shouldn't:
+
+```css
+@media (prefers-reduced-motion: reduce) { .cb-cursor { display: none; } }
+```
+
+And gate the listeners behind `pointer: fine` so coarse/touch pointers never pay
+for any of it.
+
+## The standard
+
+- **Lerp** toward the pointer; never track it exactly.
+- **Skew** with velocity, from both pointer *and* scroll, easing back to flat.
+- **Park** the loop when idle so an unused cursor costs nothing.
+- **Declarative API** — data attributes for the common cases, a wrapper for JSX,
+  a hook for the edge.
+- **Owner-based auto-clear** so it can't get stuck — the difference between a
+  toy and a tool.
+
+Small in code, big in feel. Get the leave-handling right and it disappears into
+the experience, which is exactly where a good cursor belongs.

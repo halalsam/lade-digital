@@ -74,14 +74,18 @@ export default function Navbar({ duration, ease }: NavbarProps = {}) {
       <div
         style={{
           transition:
-            "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, backdrop-filter 0.3s ease",
+            "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease",
           transform: hidden && !open ? "translateY(-100%)" : "translateY(0)",
-          willChange: "transform",
+          // Only promote to its own layer while the bar is actually sliding;
+          // a permanent will-change kept it composited every frame for nothing.
+          willChange: hidden ? "transform" : "auto",
         }}
+        // Solid (no backdrop-blur): a fixed blur re-samples + re-blurs everything
+        // behind it every scroll frame, and dark Shiki code blocks are the most
+        // expensive thing to blur — that was the scroll jank on the blog. An
+        // opaque bar does zero per-frame compositing.
         className={`fixed inset-x-0 top-0 z-50 ${
-          scrolled
-            ? "bg-paper/90 backdrop-blur-md backdrop-saturate-150"
-            : "bg-transparent"
+          scrolled ? "bg-paper" : "bg-transparent"
         }`}
       >
 

@@ -102,8 +102,12 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
   // a (0,0)/(-1,-1) phantom position before the user has moved the mouse.
   const ptr = useRef({ x: -1, y: -1, seen: false });
 
-  // Only fine-pointer (mouse/trackpad) devices get the follower.
-  const [enabled, setEnabled] = useState(false);
+  // Only fine-pointer (mouse/trackpad) devices get the follower — and it's
+  // suppressed entirely on the blog, where the reading experience (selectable
+  // code, copy buttons, long prose) wants the plain native cursor.
+  const [finePointer, setFinePointer] = useState(false);
+  const onBlog = pathname === "/blog" || pathname.startsWith("/blog/");
+  const enabled = finePointer && !onBlog;
 
   // The current cursor content + extra class, rendered into the slot. A stack
   // of entries (keyed by id) lets nested/overlapping setters coexist; the most
@@ -135,7 +139,7 @@ export function CursorProvider({ children }: { children: React.ReactNode }) {
   /* ---- device gate ---- */
   useEffect(() => {
     const mq = window.matchMedia("(pointer: fine)");
-    const apply = () => setEnabled(mq.matches);
+    const apply = () => setFinePointer(mq.matches);
     apply();
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);

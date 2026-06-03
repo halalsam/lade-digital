@@ -1,0 +1,103 @@
+---
+title: "Deterministic Gradients as Identity"
+category: "Dev Source"
+date: "2026-05-23"
+excerpt: "Every post and project on this site has a distinct cover before any artwork exists — a gradient hashed from its slug, so it's unique, stable between renders, and free."
+author: "The Studio"
+---
+
+A content site has a chicken-and-egg problem: the layout needs cover images, but
+the covers don't exist until someone designs them. The usual answers are a single
+gray placeholder (everything looks identical) or a stock photo (everything looks
+generic). We took a third path — **derive a unique gradient from each item's
+slug** — so every post and project has a distinct, brand-correct cover from the
+moment it's created, with no asset to make.
+
+## The whole idea
+
+A slug is just a string, and a string can be hashed to a number. Map that number
+onto a hue, build a dark diagonal gradient from it, and you get a cover that is:
+
+- **Unique per item** — different slugs land on different hues.
+- **Stable** — the same slug always produces the same gradient, so it never
+  flickers between renders or reorders in a list.
+- **On-brand** — every gradient is dark and low-saturation, so it sits inside the
+  ink/paper palette instead of fighting it.
+- **Free** — it's a CSS string, zero bytes over the wire, no image request.
+
+## The function
+
+The entire implementation is a dozen lines. Hash the slug into the 0–359 hue
+range, pick a second hue offset from the first for variation, and assemble a
+135° gradient between two dark stops:
+
+```ts
+// Deterministic gradient per slug so each placeholder cover looks distinct
+// (and stable between renders) until real artwork is dropped in.
+export function gradientFor(slug: string): string {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) {
+    hash = (hash * 31 + slug.charCodeAt(i)) % 360;
+  }
+  const a = hash;
+  const b = (hash + 55) % 360;
+  return `linear-gradient(135deg, hsl(${a} 35% 22%), hsl(${b} 40% 12%))`;
+}
+```
+
+A few decisions are doing quiet work here:
+
+- **`hash * 31 + charCodeAt(i)`** is the classic string-hash recurrence (the same
+  one Java's `String.hashCode` uses). The `% 360` folds it straight into the hue
+  wheel, so the output is always a valid hue.
+- **`(hash + 55) % 360`** gives the second stop a hue ~55° away — enough offset
+  to read as a gradient, not so much it turns into a rainbow.
+- **Low lightness and saturation** (`35% 22%` → `40% 12%`) keep every result dark
+  and muted. This is what makes it feel designed rather than random — the *hue*
+  varies, but the *mood* is pinned. White text always sits cleanly on top.
+- **`135deg`** is a consistent top-left-to-bottom-right diagonal, so every cover
+  shares the same lighting direction.
+
+## Using it
+
+It's a background, so it drops into any element's `style`. On a post header:
+
+```tsx
+import { gradientFor } from "@/lib/gradient";
+
+<div
+  className="aspect-video w-full overflow-hidden rounded-media"
+  style={{ background: gradientFor(post.slug) }}
+/>
+```
+
+Because it's deterministic, you call it wherever the item appears — the index
+card, the home preview, the article header — and you get the *same* cover every
+time, with no state to thread through and nothing to cache. The single source of
+truth is the slug itself.
+
+## The graceful upgrade path
+
+The real elegance is what happens later. When real artwork *does* arrive for a
+post, you render the image and the gradient simply isn't called for that item —
+no migration, no placeholder records to clean up, no broken-image gap in the
+meantime. The gradient is the floor every item stands on until something better
+replaces it, one item at a time:
+
+```tsx
+{post.cover
+  ? <Image src={post.cover} alt="" fill className="object-cover" />
+  : <div style={{ background: gradientFor(post.slug) }} />}
+```
+
+## Why this pattern travels
+
+Deterministic-from-an-id placeholders work anywhere you have stable identifiers
+and missing assets: user avatars, project tiles, event banners, empty states.
+The recipe is always the same — **hash the id, map it into a constrained visual
+range, keep the range on-brand.** Constrain the lightness and saturation so the
+*variation* is controlled and every result belongs to the same family.
+
+A good placeholder isn't a placeholder you're embarrassed by. It's one that looks
+deliberate enough that you're in no hurry to replace it — and this one costs
+nothing but a slug.

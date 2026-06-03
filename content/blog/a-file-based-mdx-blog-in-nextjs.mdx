@@ -1,0 +1,225 @@
+---
+title: "A File-Based MDX Blog in Next.js — No CMS, No Database"
+category: "Dev Source"
+date: "2026-05-26"
+excerpt: "How the post you're reading is built: an .mdx file with frontmatter, parsed by gray-matter, rendered by next-mdx-remote on the server, pre-built per slug, and shipped with full SEO."
+author: "The Studio"
+---
+
+The blog you're reading has no database, no CMS, and no admin panel. Every post
+is a single `.mdx` file in a `content/blog/` folder. You write one, commit it, and
+it appears — pre-rendered, on its own URL, with OpenGraph tags and structured data
+for search engines. This is how it's wired, end to end.
+
+For a studio blog or docs site, this beats a CMS on every axis that matters:
+posts live in git next to the code, review happens in pull requests, there's no
+service to run or pay for, and the whole thing builds to static HTML.
+
+## The shape of a post
+
+A post is Markdown with a **frontmatter** block on top — a small YAML header,
+fenced by `---`, carrying the metadata:
+
+```mdx
+---
+title: "A File-Based MDX Blog in Next.js"
+category: "Dev Source"
+date: "2026-05-26"
+excerpt: "How the post you're reading is built…"
+author: "The Studio"
+---
+
+The blog you're reading has no database…
+```
+
+MDX is Markdown that can also render components, but for a writing-first blog you
+may never need that — plain Markdown is the happy path, and components are there
+the day you want an interactive demo inline.
+
+## Reading the files: gray-matter
+
+[`gray-matter`](https://github.com/jonschlinkert/gray-matter) splits that
+frontmatter from the body. Give it the raw file string and it returns `data` (the
+parsed header) and `content` (the Markdown beneath). A small typed loader wraps
+the filesystem:
+
+```ts
+import { promises as fs } from "fs";
+import path from "path";
+import matter from "gray-matter";
+
+const BLOG_DIR = path.join(process.cwd(), "content", "blog");
+
+export type BlogPost = {
+  slug: string; title: string; category: string;
+  date: string; excerpt: string; author?: string;
+};
+export type FullPost = BlogPost & { content: string };
+
+function parse(slug: string, raw: string): FullPost {
+  const { data, content } = matter(raw);
+  return {
+    slug,
+    title: data.title ?? slug,        // sensible fallbacks so a half-written
+    category: data.category ?? "Article", // post never crashes the build
+    date: data.date ?? "",
+    excerpt: data.excerpt ?? "",
+    author: data.author,
+    content,
+  };
+}
+```
+
+Defaulting every field (`?? slug`, `?? "Article"`) is deliberate: a post missing a
+key degrades to something readable instead of throwing. The slug is just the
+filename without `.mdx` — the file *is* the URL.
+
+Three helpers cover every read pattern: all slugs, one post, and all metadata
+sorted newest-first.
+
+```ts
+// all post slugs (filenames, .mdx stripped)
+export async function getPostSlugs() {
+  let entries: string[];
+  try { entries = await fs.readdir(BLOG_DIR); }
+  catch { return []; } // no content dir yet → no posts, not a crash
+  return entries.filter((f) => f.endsWith(".mdx")).map((f) => f.replace(/\.mdx$/, ""));
+}
+
+// one post by slug, or null
+export async function getPost(slug: string) {
+  try { return parse(slug, await fs.readFile(path.join(BLOG_DIR, `${slug}.mdx`), "utf8")); }
+  catch { return null; }
+}
+
+// all metadata, newest first — for the index and home preview
+export async function getAllPosts() {
+  const slugs = await getPostSlugs();
+  const posts = await Promise.all(slugs.map(async (slug) => {
+    const raw = await fs.readFile(path.join(BLOG_DIR, `${slug}.mdx`), "utf8");
+    const { content: _drop, ...meta } = parse(slug, raw); // index needs metadata only
+    return meta;
+  }));
+  return posts.sort((a, b) => +new Date(b.date) - +new Date(a.date));
+}
+```
+
+Note `getAllPosts` throws away the body — the index only needs titles and dates,
+so there's no reason to ship every post's full text to the list page. Sorting by
+`+new Date(...)` keeps the freshest post on top with no manual ordering.
+
+## Rendering the body: next-mdx-remote on the server
+
+These helpers run on the server — they touch the filesystem, so they can never
+run in the browser. The page is a React **Server Component**, and
+[`next-mdx-remote/rsc`](https://github.com/hashicorp/next-mdx-remote) renders the
+Markdown string to HTML on the server with **zero client JavaScript**:
+
+```tsx
+import { MDXRemote } from "next-mdx-remote/rsc";
+
+<MDXRemote source={post.content} components={components} />
+```
+
+The `components` map is where the editorial look comes from. Rather than pull in a
+typography plugin, we hand MDX a renderer per element, each carrying the site's
+classes — so every heading, paragraph, and list matches the brand exactly:
+
+```tsx
+const components = {
+  h2: (props) => <h2 className="mt-16 mb-6 text-3xl font-medium leading-tight md:text-4xl" {...props} />,
+  p:  (props) => <p  className="mt-6 text-lg leading-relaxed opacity-80" {...props} />,
+  ul: (props) => <ul className="mt-6 list-disc space-y-2 pl-6 text-lg leading-relaxed opacity-80" {...props} />,
+  a:  (props) => <a  className="underline underline-offset-4 transition-opacity hover:opacity-60" {...props} />,
+  strong: (props) => <strong className="font-semibold opacity-100" {...props} />,
+  // …h3, ol, li…
+};
+```
+
+This is the lever for matching the body to your design system: the prose inherits
+your spacing rhythm and type scale because *you* wrote the renderer, not a generic
+stylesheet.
+
+## Pre-rendering every post at build time
+
+Because the set of posts is known from the filesystem, every post can be built to
+static HTML ahead of time. `generateStaticParams` hands the router every slug:
+
+```tsx
+export async function generateStaticParams() {
+  const slugs = await getPostSlugs();
+  return slugs.map((slug) => ({ slug })); // one static page per file
+}
+```
+
+A request never waits on a database or a render — it's served as a static file.
+Add an `.mdx`, and the next build produces one more page. That's the whole content
+pipeline.
+
+## SEO is part of the build, not an afterthought
+
+A blog exists to be found, so each post emits three layers of metadata. First,
+**per-post tags** via Next's `generateMetadata` — title, description, and
+OpenGraph/Twitter cards built straight from the frontmatter:
+
+```tsx
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const post = await getPost(slug);
+  if (!post) return { title: "Post not found" };
+
+  const url = `/blog/${post.slug}`;
+  return {
+    title: post.title,
+    description: post.excerpt,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article", url,
+      title: post.title, description: post.excerpt,
+      publishedTime: post.date || undefined,
+      authors: post.author ? [post.author] : undefined,
+      section: post.category,
+    },
+    twitter: { card: "summary_large_image", title: post.title, description: post.excerpt },
+  };
+}
+```
+
+Second, **JSON-LD structured data** — a `BlogPosting` schema that makes the post
+eligible for rich results in search. It's a static object, server-rendered into a
+`<script>`:
+
+```tsx
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: post.title,
+  description: post.excerpt,
+  datePublished: post.date || undefined,
+  articleSection: post.category,
+  author: { "@type": "Organization", name: post.author ?? SITE_NAME },
+  publisher: { "@type": "Organization", name: SITE_NAME },
+  url: absoluteUrl(`/blog/${post.slug}`),
+};
+
+<script type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+```
+
+Third, the site-level **`sitemap.ts`** and **`robots.ts`** enumerate the same
+slugs so crawlers discover every post. `canonical` on each page prevents
+duplicate-URL dilution. None of this is bolted on later — it falls out of the same
+frontmatter the post already carries.
+
+## Why file-based wins here
+
+- **No moving parts.** No database to run, no CMS to host, no API to secure.
+- **Posts live in git.** Version-controlled, reviewed in PRs, diffable.
+- **Static and fast.** Every post is pre-built HTML with no client JS for the
+  prose.
+- **SEO by construction.** Metadata, OpenGraph, JSON-LD, and the sitemap all read
+  from the one frontmatter block.
+- **Authoring is just writing.** Drop a Markdown file in a folder and commit.
+
+For a studio blog or documentation, the filesystem *is* the CMS — and it's the
+one you already know how to use.

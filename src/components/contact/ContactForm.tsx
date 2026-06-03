@@ -157,7 +157,7 @@ function Field({
 }) {
   return (
     <label className="group block">
-      <span className="mb-3 block text-base uppercase opacity-50">{label}</span>
+      <span className="mb-3 block text-base uppercase opacity-66">{label}</span>
       <input
         type={type}
         name={name}

@@ -1,0 +1,278 @@
+---
+title: "Building Page Transitions with the View Transition API"
+category: "Motion"
+date: "2026-06-01"
+excerpt: "The full build of our page transition — the current page recedes into the dark, a white sheet rises over it, and the new content reveals on cue. No animation library, just the platform."
+author: "The Studio"
+---
+
+When you move between pages on this site, the page you're leaving scales back,
+rounds its corners and sinks into a dark depth — while the incoming page rises
+up over it like a sheet of paper, casts a soft shadow on its leading edge, and
+only *then* lets its headlines reveal. It reads as one deliberate gesture rather
+than a hard cut.
+
+For years that effect meant a JavaScript animation library cross-fading two
+snapshots of the DOM. It doesn't anymore. The browser's **View Transition API**
+takes the snapshots for you; your job is just to describe the look in CSS and
+get the timing right. This is the whole build.
+
+<Figure type="video" placeholderKey="transition-demo" alt="the recede-and-rise transition between two pages" caption="The full transition: the current page recedes into the dark as the incoming sheet rises over it." />
+
+
+## How the View Transition API thinks
+
+The mental model is small. You hand the browser a callback that changes the DOM,
+wrapped in `document.startViewTransition`:
+
+```ts
+document.startViewTransition(() => {
+  // mutate the DOM — here, navigate to the new route
+});
+```
+
+The browser does four things in order:
+
+1. Screenshots the page **as it is now** — the "old" snapshot.
+2. Runs your callback (the DOM changes).
+3. Screenshots the page **as it now is** — the "new" snapshot.
+4. Cross-fades between them using two pseudo-elements you can style:
+   `::view-transition-old(root)` and `::view-transition-new(root)`.
+
+So you never animate real elements. You animate two *images* of the page, and
+you style them entirely in CSS. The default cross-fade is replaceable — which is
+exactly the seam we slip our recede-and-rise look into.
+
+## The look lives in CSS
+
+Here's the entire visual half. The old page recedes; the new page rises over it.
+
+```css
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.95s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: both;
+  transform-origin: center center;
+  mix-blend-mode: normal; /* opaque stack — no additive cross-fade */
+}
+
+/* the page you're leaving: scale back, round, dim into the dark */
+::view-transition-old(root) { animation-name: page-recede; }
+@keyframes page-recede {
+  to { transform: scale(0.9); border-radius: 22px; filter: brightness(0.5); }
+}
+
+/* the new page paints ABOVE the old one by default → it rises over it */
+::view-transition-new(root) {
+  animation-name: page-rise;
+  background: #ffffff;
+  box-shadow: 0 -22px 60px -10px rgba(0, 0, 0, 0.5);
+}
+@keyframes page-rise {
+  from { transform: translateY(100%); border-radius: 26px 26px 0 0; }
+  to   { transform: translateY(0);    border-radius: 0; }
+}
+```
+
+<Figure placeholderKey="transition-keyframes" alt="diagram of the old page receding and the new page rising" caption="Two keyframes: page-recede scales the old snapshot back and dims it; page-rise slides the new snapshot up over it." />
+
+Two details carry the whole feel:
+
+- **`mix-blend-mode: normal`** turns off the API's default *additive*
+  cross-fade. We want an opaque stack — a solid sheet sliding over a solid page,
+  not two translucent ghosts blending. This one line is the difference between
+  "cheap dissolve" and "physical sheet."
+- The **new snapshot paints above the old one** by default, so giving it a
+  `translateY(100%) → 0` is all it takes to make it *rise over* the receding
+  page. The shadow on its top edge sells the depth.
+
+And the part people forget — give reduced-motion users the cut:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
+```
+
+## The provider: trigger and timing
+
+In a single-page app the "DOM change" is a client-side route push. We wrap one
+in `startViewTransition` and expose a `navigate()` for links to call. The shape:
+
+```tsx
+"use client";
+
+import {
+  createContext, startTransition, useContext,
+  useEffect, useRef, useState,
+} from "react";
+import { usePathname, useRouter } from "next/navigation";
+
+type TransitionValue = {
+  navigate: (href: string) => void;
+  isReady: boolean; // true once the incoming page is settled
+};
+
+const TransitionContext = createContext<TransitionValue>({
+  navigate: () => {},
+  isReady: true,
+});
+export const usePageTransition = () => useContext(TransitionContext);
+```
+
+The `navigate` implementation has three jobs: **hold** the incoming page's
+reveals, **run** the transition around the route push, and **release** the
+reveals once it settles.
+
+```tsx
+const navigate = (href: string) => {
+  if (running.current) return;            // ignore clicks mid-transition
+  if (!href || href === pathname) return;
+
+  // No animation available → plain navigation, gate untouched.
+  if (prefersReduced() || !supportsViewTransition()) {
+    router.push(href);
+    return;
+  }
+
+  running.current = true;
+  closeGate(); // hold the new page's word-reveals until the sheet has risen
+
+  const transition = document.startViewTransition(
+    () =>
+      new Promise<void>((resolve) => {
+        // resolved by the pathname effect below, once the route commits
+        resolveSnapshot.current = resolve;
+        startTransition(() => router.push(href));
+      }),
+  );
+
+  const done = () => { running.current = false; openGate(); };
+  transition.finished.then(done, done);
+};
+```
+
+### The one bug that will cost you an afternoon
+
+`startViewTransition` takes a callback that may return a **promise**. The browser
+freezes the screen on the old snapshot until that promise resolves — only then
+does it take the "new" snapshot. So you must resolve it **after the new route has
+actually rendered**, or the API snapshots the old page twice and animates
+nothing.
+
+The reliable signal that the new route has committed is a `pathname` change.
+So we stash the promise's `resolve` in a ref and call it from an effect keyed on
+`pathname`:
+
+```tsx
+const resolveSnapshot = useRef<(() => void) | null>(null);
+
+useEffect(() => {
+  if (!resolveSnapshot.current) return;
+  resolveSnapshot.current();
+  resolveSnapshot.current = null;
+}, [pathname]);
+```
+
+Here's the trap, stated plainly so you can avoid it: **resolve from a passive
+effect, not from `requestAnimationFrame`.** The view transition freezes paint,
+and `rAF` is gated on paint — so an `rAF`-based resolve waits for a frame that
+will never come, deadlocks, and the API aborts with a DOM-update timeout. React
+flushes passive effects from its own scheduler, independent of paint, so the
+effect above fires and the transition proceeds.
+
+## The reveal gate: don't play reveals behind the curtain
+
+There's a subtle timing clash. The incoming page mounts *underneath* the rising
+sheet. If its headline word-reveals start the instant it mounts, they'll have
+finished playing by the time the sheet clears — the visitor arrives to a static
+page and misses the entrance entirely.
+
+The fix is a **gate**: a single attribute on `<html>` that pauses reveals while
+the curtain is up, and releases them when it settles.
+
+```tsx
+const openGate  = () => { document.documentElement.dataset.reveal = "go"; setIsReady(true); };
+const closeGate = () => { document.documentElement.dataset.reveal = "wait"; setIsReady(false); };
+```
+
+```css
+/* while the curtain is up, hold the incoming page's word-reveals closed */
+html[data-reveal="wait"] .reveal-word > span {
+  animation-play-state: paused;
+}
+```
+
+`closeGate()` runs the moment a navigation starts; `openGate()` runs from
+`transition.finished`. Unset (first load), no-JS, and reduced-motion all fall
+through to the un-paused default, so reveals run normally when there's no curtain
+to hide behind. The same flag gates the navbar's entrance — one source of truth
+for "is the curtain up?"
+
+## A drop-in link
+
+Last piece: a `<Link>` that routes internal clicks through `navigate()` and
+leaves everything else — external URLs, hashes, new-tab and modified clicks —
+to the browser. Aliasing the import means you adopt it without touching call
+sites.
+
+```tsx
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { usePageTransition } from "./TransitionProvider";
+
+export default function TransitionLink({ href, onClick, ref, ...rest }) {
+  const { navigate } = usePageTransition();
+  const pathname = usePathname();
+
+  const handleClick = (event) => {
+    onClick?.(event);
+    if (event.defaultPrevented) return;
+
+    // respect new-tab / modifier / non-primary-button intent
+    if (event.metaKey || event.ctrlKey || event.shiftKey ||
+        event.altKey  || event.button !== 0) return;
+
+    const url = typeof href === "string" ? href : href.toString();
+    if (!url.startsWith("/") || url.startsWith("//")) return; // same-origin only
+
+    const path = url.split("#")[0];
+    if (path === pathname) return; // let same-page hash jumps scroll natively
+
+    event.preventDefault();
+    navigate(url);
+  };
+
+  return <Link ref={ref} href={href} onClick={handleClick} {...rest} />;
+}
+```
+
+```tsx
+// adopt everywhere by aliasing the import:
+import Link from "@/components/transition/TransitionLink";
+```
+
+## One Next.js + Turbopack gotcha
+
+If you're on Next with Turbopack, inject the `::view-transition-*` CSS as a raw
+`<style>` tag from the provider rather than putting it in your global
+stylesheet. Turbopack's dev CSS pipeline strips `::view-transition` rules from
+processed stylesheets — they only survive a production build. A raw injected
+`<style>` sidesteps the pipeline, so the transition looks identical in dev and
+prod.
+
+## What you end up with
+
+- The platform takes the snapshots; you write **two keyframes and a blend mode**.
+- The route push runs **inside** the transition, resolved from a `pathname`
+  effect so the new snapshot is correct.
+- A one-attribute **gate** keeps the incoming reveals from playing behind the
+  curtain.
+- Reduced-motion, no-JS, and unsupported browsers all fall back to an instant,
+  correct navigation — no library, no jank.
+
+No exit animation, no first-load curtain, no dependency. The most cinematic
+moment on the site is a couple of keyframes and a careful promise.
