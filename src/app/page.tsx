@@ -39,7 +39,7 @@ export default function HomePage() {
           titleDuration={2}
         />
         {/* Everything below the hero rises + fades in as it scrolls into view. */}
-        <RevealScale  duration={2000} delay={100}>
+        <RevealScale  duration={2000} >
           <Showreel />
         </RevealScale>
         <Reveal className="py-20">
