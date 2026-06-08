@@ -3,14 +3,14 @@
 import { useState, type FormEvent } from "react";
 import Container from "@/components/shared/Container";
 
-// Contact form for the light page (ink on paper). Submits to a Formspree
-// endpoint (NEXT_PUBLIC_FORMSPREE_ENDPOINT) via fetch, so there's no backend
-// to maintain — Formspree collects and emails the entries. Styled to match the
-// editorial layout: underlined inputs, generous spacing, a pill submit.
+// Contact form for the light page (ink on paper). Posts JSON to /api/contact,
+// which sends a notification to the studio and a branded confirmation email to
+// the visitor via Resend. Styled to match the editorial layout: underlined
+// inputs, generous spacing, a pill submit.
 
 type Status = "idle" | "submitting" | "success" | "error";
 
-const ENDPOINT = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT;
+const ENDPOINT = "/api/contact";
 
 const FIELDS = [
   { name: "name", label: "Your name", type: "text", autoComplete: "name" },
@@ -24,11 +24,6 @@ export default function ContactForm() {
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!ENDPOINT) {
-      setStatus("error");
-      setError("Form isn’t configured yet — set NEXT_PUBLIC_FORMSPREE_ENDPOINT.");
-      return;
-    }
 
     const form = e.currentTarget;
     const data = new FormData(form);
@@ -45,8 +40,14 @@ export default function ContactForm() {
     try {
       const res = await fetch(ENDPOINT, {
         method: "POST",
-        body: data,
-        headers: { Accept: "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          name: data.get("name"),
+          email: data.get("email"),
+          company: data.get("company"),
+          message: data.get("message"),
+          _gotcha: data.get("_gotcha"),
+        }),
       });
 
       if (res.ok) {
@@ -54,9 +55,11 @@ export default function ContactForm() {
         form.reset();
       } else {
         const body = await res.json().catch(() => null);
-        const msg = body?.errors?.map((err: { message: string }) => err.message).join(", ");
+        const fieldErrors = body?.errors
+          ? Object.values(body.errors as Record<string, string>).join(" ")
+          : "";
         setStatus("error");
-        setError(msg || "Something went wrong. Please try again.");
+        setError(body?.error || fieldErrors || "Something went wrong. Please try again.");
       }
     } catch {
       setStatus("error");
