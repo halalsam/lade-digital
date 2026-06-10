@@ -48,184 +48,212 @@ export type Project = {
   detail?: ProjectDetail;
 };
 
-// Four products we designed and built end to end. Cover/gallery images are
-// expected at /public/assets/projects/<slug>/<name>.jpg — until those exist,
-// both the grid covers and the case-study media render deterministic gradient
-// placeholders. Drop in a screenshot and set the matching `src`/`cover` to go
-// live (see GalleryItem above).
+// Four products we designed and built end to end. Cover/gallery images live at
+// /public/assets/projects/<slug>/ — swap any `src`/`cover` to update the
+// artwork; frames without a `src` fall back to a deterministic gradient
+// placeholder (see GalleryItem above).
 export const PROJECTS: Project[] = [
   {
-    slug: "crunchies",
-    name: "Crunchies",
-    description: "Food ordering and delivery built around the craving",
+    slug: "nestora",
+    name: "Nestora",
+    description: "A real-estate marketplace built on the MERN stack",
     categories: ["web", "app"],
     detail: {
       year: "2026",
-      sector: "Food & delivery",
-      tagline: "A craving-first food-ordering platform, designed and built end to end.",
+      sector: "Real estate",
+      cover: "/assets/projects/nestora/cover.jpg",
+      tagline:
+        "A property marketplace where search feels like browsing homes, not databases.",
       overview:
-        "Crunchies is a food-ordering and delivery platform we built from the ground up — a fast, appetite-led storefront where the food does the selling and checkout never breaks stride, on web and in the app.",
+        "Nestora is a real-estate marketplace we designed and built end to end on the MERN stack — MongoDB, Express, React and Node — pairing map-led search with listing pages that let the homes do the talking.",
       challenge:
-        "Food ordering is impulsive. Most apps bury the food under menus, modifiers and forms, killing the craving before it ever reaches checkout. Crunchies had to move at the speed of hunger.",
+        "Property portals drown buyers in filters, tabs and duplicate listings. Nestora had to make browsing thousands of homes feel as effortless as scrolling a feed, while keeping agents' inventory accurate in real time.",
       approach:
-        "We led with full-bleed photography, oversized pricing, and a sticky cart that follows the scroll. Categories snap horizontally, add-to-cart animates with weight, and the path from browsing to ordering stays in one unbroken flow.",
-      deliverables: [
-        "Product strategy",
-        "Art direction",
-        "UX & UI design",
-        "Design system",
-        "Front-end build",
-      ],
-      stack: ["Next.js", "React Native", "Sanity", "Tailwind CSS", "GSAP"],
-      stats: [
-        { value: "0.4s", label: "Largest contentful paint" },
-        { value: "+38%", label: "Add-to-cart rate" },
-        { value: "100", label: "Lighthouse performance" },
-        { value: "6", label: "Reusable commerce blocks" },
-      ],
-      palette: [
-        { name: "Char", hex: "#181513" },
-        { name: "Cream", hex: "#F4EBDD" },
-        { name: "Chili", hex: "#E8462B" },
-        { name: "Lime", hex: "#C7F046" },
-      ],
-      gallery: [
-        { label: "Storefront — menu landing", aspect: "ultrawide", full: true },
-        { label: "Product detail", aspect: "portrait" },
-        { label: "Cart & checkout", aspect: "portrait" },
-        { label: "Category filters", aspect: "wide" },
-        { label: "Mobile ordering flow", aspect: "wide" },
-      ],
-    },
-  },
-  {
-    slug: "caldr",
-    name: "Caldr",
-    description: "Scheduling and booking that feels effortless",
-    categories: ["web", "app"],
-    detail: {
-      year: "2026",
-      sector: "Scheduling",
-      tagline: "Scheduling infrastructure, built as a calm, human booking moment.",
-      overview:
-        "Caldr is a scheduling platform we designed and built to make booking feel like a conversation, not a config screen — turning timezones, availability and buffers into a single, confident flow.",
-      challenge:
-        "Scheduling tools overwhelm: timezones, durations, buffers and availability all competing for attention. We wanted guests to simply pick a time without having to think about any of it.",
-      approach:
-        "We reduced each step to a single decision, animated the transitions between date, time and details, and let typography carry the hierarchy. Timezones resolve quietly in the background, and confirmation feels like a handshake, not a receipt.",
+        "We built search around the map: results re-rank as you pan, photography leads every card, and saved searches sync instantly through a MongoDB change-stream pipeline. Agents get a dashboard that treats listings like products, not paperwork.",
       deliverables: [
         "Product strategy",
         "UX & UI design",
         "Design system",
-        "Interaction design",
-        "Front-end build",
+        "Full-stack build",
+        "Agent dashboard",
       ],
-      stack: ["Next.js", "tRPC", "Prisma", "Tailwind CSS", "Radix UI"],
+      stack: ["MongoDB", "Express", "React", "Node.js", "Redux Toolkit", "Mapbox"],
       stats: [
-        { value: "3", label: "Steps to book" },
-        { value: "+24%", label: "Booking completion" },
-        { value: "AA", label: "WCAG contrast across flows" },
-        { value: "40+", label: "Components in the system" },
+        { value: "12k+", label: "Listings indexed at launch" },
+        { value: "0.6s", label: "Median search response" },
+        { value: "+41%", label: "Lead conversion" },
+        { value: "98", label: "Lighthouse SEO" },
       ],
       palette: [
-        { name: "Ink", hex: "#0B0B0F" },
-        { name: "Mist", hex: "#EEF1F4" },
-        { name: "Iris", hex: "#5B5BD6" },
-        { name: "Sage", hex: "#9FB89A" },
+        { name: "Forest", hex: "#1F3D2B" },
+        { name: "Linen", hex: "#F5F0E8" },
+        { name: "Clay", hex: "#C96F4A" },
+        { name: "Stone", hex: "#8A8F98" },
       ],
       gallery: [
-        { label: "Booking page — pick a time", aspect: "ultrawide", full: true },
-        { label: "Date & time step", aspect: "portrait" },
-        { label: "Details & confirm", aspect: "portrait" },
-        { label: "Availability settings", aspect: "wide" },
-        { label: "Confirmation state", aspect: "wide" },
+        {
+          src: "/assets/projects/nestora/01.jpg",
+          label: "Map-led search results",
+          aspect: "ultrawide",
+          full: true,
+        },
+        { src: "/assets/projects/nestora/02.jpg", label: "Listing detail", aspect: "portrait" },
+        { src: "/assets/projects/nestora/03.jpg", label: "Saved homes", aspect: "portrait" },
+        { src: "/assets/projects/nestora/04.jpg", label: "Photo-first listing cards", aspect: "wide" },
+        { src: "/assets/projects/nestora/05.jpg", label: "Virtual tour view", aspect: "wide" },
       ],
     },
   },
   {
-    slug: "excalia",
-    name: "Excalia",
-    description: "A collaborative whiteboard for thinking out loud",
+    slug: "ledgerly",
+    name: "Ledgerly",
+    description: "Personal-finance analytics built end to end on Next.js",
     categories: ["web", "app"],
     detail: {
       year: "2025",
-      sector: "Productivity",
-      tagline: "A collaborative whiteboard that gets out of the way and feels like paper.",
+      sector: "Fintech",
+      cover: "/assets/projects/ledgerly/cover.jpg",
+      tagline:
+        "A finance dashboard that turns raw transactions into decisions you can read at a glance.",
       overview:
-        "Excalia is a collaborative whiteboard we designed and built for teams to sketch ideas together — an infinite, hand-drawn canvas that stays focused on the thinking, not the chrome.",
+        "Ledgerly is a personal-finance analytics platform we designed and built on Next.js — accounts, budgets and investments unified into one fast, server-rendered dashboard that updates as money moves.",
       challenge:
-        "A whiteboard lives or dies by focus. The more features a canvas grows, the more toolbars and panels crowd the space meant for actual thinking.",
+        "Finance apps either oversimplify into a single balance or overwhelm with spreadsheets. Ledgerly had to make a dense, live dataset feel calm — and load fast enough that checking your money becomes a habit, not a chore.",
       approach:
-        "We collapsed the chrome into a floating, context-aware toolbar, dimmed everything that isn't the drawing, and built the property panel as a calm, on-demand surface — so the canvas always belongs to the user.",
+        "We leaned on Next.js server components to stream the dashboard in layers — balances first, charts as they resolve — and gave every metric one chart language: same scales, same colors, same rhythm. Dark-first UI keeps long sessions easy on the eyes.",
       deliverables: [
         "Product strategy",
         "UX & UI design",
+        "Data visualization",
         "Design system",
-        "Interaction design",
-        "Iconography",
+        "Front-end build",
       ],
-      stack: ["React", "TypeScript", "Canvas API", "WebSockets", "Tailwind CSS"],
+      stack: ["Next.js", "TypeScript", "tRPC", "Prisma", "PostgreSQL", "Recharts"],
       stats: [
-        { value: "-32%", label: "Chrome on screen" },
-        { value: "1", label: "Floating toolbar, always in reach" },
-        { value: "60fps", label: "Pan & zoom" },
-        { value: "2", label: "Themes, light & dark" },
+        { value: "0.5s", label: "Largest contentful paint" },
+        { value: "40+", label: "Chart & metric components" },
+        { value: "<300ms", label: "Live balance sync" },
+        { value: "AA", label: "WCAG contrast across themes" },
       ],
       palette: [
-        { name: "Slate", hex: "#1E1E1E" },
-        { name: "Paper", hex: "#FBFBFB" },
-        { name: "Violet", hex: "#6965DB" },
-        { name: "Coral", hex: "#FF8A65" },
+        { name: "Midnight", hex: "#0B1220" },
+        { name: "Frost", hex: "#EDF2F7" },
+        { name: "Mint", hex: "#34D399" },
+        { name: "Cobalt", hex: "#2563EB" },
       ],
       gallery: [
-        { label: "Infinite canvas — focused", aspect: "ultrawide", full: true },
-        { label: "Floating toolbar", aspect: "wide" },
-        { label: "Property panel", aspect: "wide" },
-        { label: "Light & dark themes", aspect: "ultrawide", full: true },
+        {
+          src: "/assets/projects/ledgerly/01.jpg",
+          label: "Overview dashboard",
+          aspect: "ultrawide",
+          full: true,
+        },
+        { src: "/assets/projects/ledgerly/02.jpg", label: "Mobile portfolio", aspect: "portrait" },
+        { src: "/assets/projects/ledgerly/03.jpg", label: "Marketing site", aspect: "portrait" },
+        { src: "/assets/projects/ledgerly/04.jpg", label: "Markets & watchlists", aspect: "wide" },
+        { src: "/assets/projects/ledgerly/05.jpg", label: "Building the design system", aspect: "wide" },
       ],
     },
   },
   {
-    slug: "dublink",
-    name: "Dublink",
-    description: "Link management and analytics for modern teams",
+    slug: "atelier",
+    name: "Atelier",
+    description: "A headless commerce storefront on Medusa and Next.js",
+    categories: ["web", "branding"],
+    detail: {
+      year: "2026",
+      sector: "Fashion & e-commerce",
+      cover: "/assets/projects/atelier/cover.jpg",
+      tagline:
+        "A headless storefront where the catalogue reads like a lookbook and checkout never interrupts.",
+      overview:
+        "Atelier is a fashion storefront we built on Medusa and Next.js — a fully headless commerce stack with editorial product pages, region-aware pricing and a checkout that stays out of the way of the clothes.",
+      challenge:
+        "Template storefronts make every brand look the same. Atelier needed lookbook-grade art direction on top of real commerce plumbing — multi-region carts, live inventory and promotions — without trading away performance.",
+      approach:
+        "Medusa gave us the commerce engine; Next.js gave us total control of the front of house. We designed collection pages as editorial spreads, kept the cart as a quiet slide-over, and let Stripe-powered checkout finish in three steps.",
+      deliverables: [
+        "Brand identity",
+        "Art direction",
+        "UX & UI design",
+        "Storefront build",
+        "Medusa backend setup",
+      ],
+      stack: ["Medusa", "Next.js", "PostgreSQL", "Stripe", "Tailwind CSS"],
+      stats: [
+        { value: "0.8s", label: "Storefront LCP" },
+        { value: "+32%", label: "Checkout completion" },
+        { value: "3", label: "Regions & currencies" },
+        { value: "1.2k", label: "SKUs at launch" },
+      ],
+      palette: [
+        { name: "Noir", hex: "#0E0E0E" },
+        { name: "Bone", hex: "#F2EDE6" },
+        { name: "Camel", hex: "#B08850" },
+        { name: "Navy", hex: "#1F2A44" },
+      ],
+      gallery: [
+        {
+          src: "/assets/projects/atelier/01.jpg",
+          label: "Collection landing",
+          aspect: "ultrawide",
+          full: true,
+        },
+        { src: "/assets/projects/atelier/02.jpg", label: "Product detail", aspect: "portrait" },
+        { src: "/assets/projects/atelier/03.jpg", label: "Campaign drop", aspect: "portrait" },
+        { src: "/assets/projects/atelier/04.jpg", label: "Product photography", aspect: "wide" },
+        { src: "/assets/projects/atelier/05.jpg", label: "Express checkout", aspect: "wide" },
+      ],
+    },
+  },
+  {
+    slug: "plume",
+    name: "Plume",
+    description: "A digital publication powered by a headless Strapi CMS",
     categories: ["web", "branding"],
     detail: {
       year: "2025",
-      sector: "Marketing tools",
-      tagline: "A link-management platform with a brand and dashboard built to match.",
+      sector: "Media & publishing",
+      cover: "/assets/projects/plume/cover.jpg",
+      tagline:
+        "An editorial platform where writers publish in minutes and every article ships print-quality.",
       overview:
-        "Dublink is a link-management and analytics platform we built end to end — brand, product and front-end — so every short link, click and conversion feels measurable at a glance.",
+        "Plume is a digital publication we designed and built on Strapi and Next.js — a headless newsroom where editors model their own content types and the front end renders every story with magazine-grade typography.",
       challenge:
-        "Link tools have a reputation for being unglamorous. Dublink needed a brand that signalled speed and precision, and a dashboard that turned raw analytics into something a team actually enjoys reading.",
+        "The editorial team was fighting their old CMS: rigid templates, slow previews, and a design that flattened every story into the same grey column. Plume had to give editors freedom without letting the typography fall apart.",
       approach:
-        "We built a tight identity around a monospaced wordmark and a single electric accent, then carried it into a data-dense but legible dashboard. Charts, link rows and QR codes share one rhythm, so the product feels designed end to end.",
+        "We modelled articles, essays and photo stories as separate Strapi content types, each with its own art-directed layout. Draft previews render through Next.js in real time, and a strict type scale keeps even the wildest layout readable.",
       deliverables: [
-        "Brand identity",
-        "Logo & wordmark",
-        "UX & UI design",
-        "Design system",
+        "Editorial design",
+        "Brand & wordmark",
+        "Content modelling",
+        "Strapi setup",
         "Front-end build",
       ],
-      stack: ["Next.js", "Tinybird", "Tailwind CSS", "Framer Motion", "PlanetScale"],
+      stack: ["Strapi", "Next.js", "PostgreSQL", "Tailwind CSS", "Cloudinary"],
       stats: [
-        { value: "1", label: "Accent color, used with intent" },
-        { value: "2.1×", label: "Faster scan of key metrics" },
-        { value: "30+", label: "Dashboard components" },
+        { value: "120+", label: "Articles migrated" },
+        { value: "3min", label: "Editor to live" },
+        { value: "2.4×", label: "Average read time" },
         { value: "100", label: "Lighthouse accessibility" },
       ],
       palette: [
-        { name: "Black", hex: "#0A0A0A" },
-        { name: "Snow", hex: "#FAFAFA" },
-        { name: "Volt", hex: "#3B82F6" },
-        { name: "Steel", hex: "#A1A1AA" },
+        { name: "Ink", hex: "#141414" },
+        { name: "Ivory", hex: "#FAF6EF" },
+        { name: "Crimson", hex: "#C73E3A" },
+        { name: "Gold", hex: "#C9A227" },
       ],
       gallery: [
-        { label: "Analytics dashboard", aspect: "ultrawide", full: true },
-        { label: "Brand & wordmark", aspect: "portrait" },
-        { label: "Link rows & QR", aspect: "portrait" },
-        { label: "Conversion funnel", aspect: "wide" },
-        { label: "Mobile dashboard", aspect: "wide" },
+        {
+          src: "/assets/projects/plume/01.jpg",
+          label: "Front page",
+          aspect: "ultrawide",
+          full: true,
+        },
+        { src: "/assets/projects/plume/02.jpg", label: "Article view", aspect: "portrait" },
+        { src: "/assets/projects/plume/03.jpg", label: "Author desk", aspect: "portrait" },
+        { src: "/assets/projects/plume/04.jpg", label: "Strapi editor in use", aspect: "wide" },
+        { src: "/assets/projects/plume/05.jpg", label: "Reading list", aspect: "wide" },
       ],
     },
   },
@@ -286,11 +314,11 @@ const bySlug = (slug: string) =>
   PROJECTS.find((p) => p.slug === slug) as Project;
 
 export const FEATURED_LEFT: FeaturedProject[] = [
-  { ...bySlug("crunchies"), tall: true },
-  { ...bySlug("excalia") },
+  { ...bySlug("nestora"), tall: true },
+  { ...bySlug("atelier") },
 ];
 
 export const FEATURED_RIGHT: FeaturedProject[] = [
-  { ...bySlug("caldr"), tall: true },
-  { ...bySlug("dublink") },
+  { ...bySlug("ledgerly"), tall: true },
+  { ...bySlug("plume") },
 ];

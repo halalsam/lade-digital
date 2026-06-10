@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/shared/Navbar";
 import GetInTouch from "@/components/shared/GetInTouch";
@@ -320,10 +321,20 @@ export default async function ProjectPage({
               className="group block"
             >
               <div className="relative aspect-16/8 overflow-hidden rounded-media md:aspect-16/6">
-                <div
-                  className="absolute inset-0 transition-transform duration-[1.2s] ease-reveal group-hover:scale-105"
-                  style={{ background: gradientFor(next.slug) }}
-                />
+                {next.detail?.cover ? (
+                  <Image
+                    src={next.detail.cover}
+                    alt={next.name}
+                    fill
+                    sizes="(min-width: 1400px) 1400px, 100vw"
+                    className="object-cover transition-transform duration-[1.2s] ease-reveal group-hover:scale-105"
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0 transition-transform duration-[1.2s] ease-reveal group-hover:scale-105"
+                    style={{ background: gradientFor(next.slug) }}
+                  />
+                )}
                 <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
                 <div className="absolute inset-0 flex items-end p-8 md:p-12">
                   <div>
