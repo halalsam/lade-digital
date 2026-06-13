@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 // frame) so ProjectMedia and any bespoke caller resolve aspects from one source.
 export const ASPECT: Record<MediaAspect, string> = {
   ultrawide: "aspect-[16/7]",
-  wide: "aspect-video",
+  wide: "aspect-[16/10]",
   square: "aspect-square",
   portrait: "aspect-[4/5]",
   tall: "aspect-[3/4]",

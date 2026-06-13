@@ -46,7 +46,7 @@ export default function ProjectCard({
         }`}
       >
         <MediaFrame
-          className={isGrid && tall ? "aspect-500/675" : "aspect-video"}
+          className={isGrid && tall ? "aspect-500/675" : "aspect-[16/10]"}
         >
           {project.detail?.cover ? (
             <Image

@@ -275,73 +275,81 @@ export const PROJECTS: Project[] = [
     },
   },
   {
-    slug: "plume",
-    name: "Plume",
-    description: "A digital publication powered by a headless Strapi CMS",
-    categories: ["web", "branding"],
+    slug: "firstmerge",
+    name: "FirstMerge",
+    description: "A curated feed of beginner-friendly open-source issues",
+    categories: ["web", "app"],
     detail: {
-      year: "2025",
-      sector: "Media & publishing",
-      cover: "/assets/projects/plume/cover.jpg",
+      year: "2026",
+      sector: "Developer tools",
+      live: "https://firstmerge.vercel.app",
+      cover: "/assets/projects/firstmerge/cover.png",
       tagline:
-        "An editorial platform where writers publish in minutes and every article ships print-quality.",
+        "An issue feed that surfaces the open-source contributions most likely to actually get merged.",
       overview:
-        "Plume is a digital publication we designed and built on Strapi and Next.js — a headless newsroom where editors model their own content types and the front end renders every story with magazine-grade typography.",
+        "FirstMerge is a developer tool that helps open-source contributors find beginner-friendly GitHub issues with real merge potential. It vets issues before surfacing them — checking that they're unclaimed, that the repo is actively maintained, and that maintainers accept outside contributions — and rolls those signals into a single Merge Score.",
       challenge:
-        "The editorial team was fighting their old CMS: rigid templates, slow previews, and a design that flattened every story into the same grey column. Plume had to give editors freedom without letting the typography fall apart.",
+        "Finding a good first issue on GitHub is a slog: most labelled issues are stale, already claimed, or sit in repos that never merge outside PRs. New contributors burn hours on dead ends. FirstMerge had to turn thousands of noisy issues into a ranked, trustworthy feed.",
       approach:
-        "We modelled articles, essays and photo stories as separate Strapi content types, each with its own art-directed layout. Draft previews render through Next.js in real time, and a strict type scale keeps even the wildest layout readable.",
+        "We pull issues across languages through the GitHub API, score each one on maintenance activity, recency and claim status, and cache the results so the feed stays fast and fresh. Filters by language, popularity and issue size let contributors zero in, and verification timestamps make the data's freshness obvious.",
       deliverables: [
-        "Editorial design",
-        "Brand & wordmark",
-        "Content modelling",
-        "Strapi setup",
-        "Front-end build",
+        "Product strategy",
+        "UX & UI design",
+        "Merge Score model",
+        "Full-stack build",
+        "GitHub API integration",
       ],
-      stack: ["Strapi", "Next.js", "PostgreSQL", "Tailwind CSS", "Cloudinary"],
+      stack: ["Next.js", "TypeScript", "GitHub API", "Tailwind CSS", "Vercel"],
       stats: [
-        { value: "120+", label: "Articles migrated" },
-        { value: "3min", label: "Editor to live" },
-        { value: "2.4×", label: "Average read time" },
-        { value: "100", label: "Lighthouse accessibility" },
+        { value: "1.4k+", label: "Issues tracked" },
+        { value: "1k+", label: "Likely to merge" },
+        { value: "1.3k", label: "Unclaimed issues" },
+        { value: "MIT", label: "Open source" },
       ],
       palette: [
         { name: "Ink", hex: "#141414" },
-        { name: "Ivory", hex: "#FAF6EF" },
-        { name: "Crimson", hex: "#C73E3A" },
-        { name: "Gold", hex: "#C9A227" },
+        { name: "Paper", hex: "#FAF6EF" },
+        { name: "Merge Green", hex: "#2DA44E" },
+        { name: "Slate", hex: "#57606A" },
       ],
       gallery: [
         {
-          src: "/assets/projects/plume/01.jpg",
-          label: "Front page",
+          src: "/assets/projects/firstmerge/01.png",
+          label: "Issue feed",
           aspect: "ultrawide",
           full: true,
         },
         {
-          src: "/assets/projects/plume/02.jpg",
-          label: "Article view",
-          aspect: "portrait",
-        },
-        {
-          src: "/assets/projects/plume/03.jpg",
-          label: "Author desk",
-          aspect: "portrait",
-        },
-        {
-          src: "/assets/projects/plume/04.jpg",
-          label: "Strapi editor in use",
+          src: "/assets/projects/firstmerge/03.png",
+          label: "Merge Score breakdown",
           aspect: "wide",
         },
         {
-          src: "/assets/projects/plume/05.jpg",
-          label: "Reading list",
+          src: "/assets/projects/firstmerge/04.png",
+          label: "Language & popularity filters",
+          aspect: "wide",
+        },
+        {
+          src: "/assets/projects/firstmerge/05.png",
+          label: "Issue detail",
+          aspect: "wide",
+        },
+        {
+          src: "/assets/projects/firstmerge/06.png",
+          label: "Saved & claimed issues",
+          aspect: "wide",
+        },
+        {
+          src: "/assets/projects/firstmerge/07.png",
+          label: "Repository insights",
           aspect: "wide",
         },
       ],
     },
   },
 ];
+
+// (FirstMerge gallery uses 01,03–07.png — there is no 02.png in the asset set.)
 
 export const FILTERS: { id: "all" | Category; label: string }[] = [
   { id: "all", label: "All Projects" },
@@ -404,5 +412,5 @@ export const FEATURED: FeaturedProject[] = [
   { ...bySlug("nestora") },
   { ...bySlug("ledgerly") },
   { ...bySlug("36x") },
-  { ...bySlug("plume") },
+  { ...bySlug("firstmerge") },
 ];

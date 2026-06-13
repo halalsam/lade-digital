@@ -1,6 +1,4 @@
 import RevealUp from "../shared/RevealUp";
-import PillButton from "../shared/PillButton";
-import Line from "../shared/Line";
 import Section from "../shared/Section";
 import SectionHeading from "../shared/SectionHeading";
 
@@ -8,17 +6,17 @@ const SOLUTIONS = [
   {
     label: "Websites and platforms",
     body: "In our team, developers work alongside designers. This is crucial in creating a fast and responsive website that would excite the audience.",
-    href: "/services/digital",
+    tags: ["Web design", "Frontend", "Backend", "CMS"],
   },
   {
     label: "Mobile applications",
     body: "We don’t do cookie-cutter solutions. Every mobile app involves stages of target audience research and prototype testing. The result? A product that’s perfectly suited to your users.",
-    href: "/services/mobile",
+    tags: ["iOS", "Android", "Prototyping", "User testing"],
   },
   {
     label: "Strategy and branding",
     body: "We identify your brand by developing a logo, corporate identity, user manuals, mockups, and souvenir products. Whatever it takes to get your brand noticed.",
-    href: "/services/branding",
+    tags: ["Logo", "Identity", "Guidelines", "Mockups"],
   },
 ];
 
@@ -67,13 +65,16 @@ export default function Solutions() {
                 <p className="max-w-[500px] text-xl leading-tight tracking-apple-body md:text-[1.625rem]">
                   {item.body}
                 </p>
-                <div className="mt-10">
-                  <PillButton
-                    href={item.href}
-                    label="Read more"
-                    variant="ink"
-                  />
-                </div>
+                <ul className="mt-8 flex flex-wrap gap-2">
+                  {item.tags.map((tag) => (
+                    <li
+                      key={tag}
+                      className="rounded-full border border-ink/20 px-4 py-1.5 text-sm tracking-apple-body text-ink/70"
+                    >
+                      {tag}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </RevealUp>
