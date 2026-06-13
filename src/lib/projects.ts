@@ -307,10 +307,10 @@ export const PROJECTS: Project[] = [
         { value: "MIT", label: "Open source" },
       ],
       palette: [
-        { name: "Ink", hex: "#141414" },
-        { name: "Paper", hex: "#FAF6EF" },
-        { name: "Merge Green", hex: "#2DA44E" },
-        { name: "Slate", hex: "#57606A" },
+        { name: "Apple Blue", hex: "#0071E3" },
+        { name: "White", hex: "#FFFFFF" },
+        { name: "Gray", hex: "#86868B" },
+        { name: "Black", hex: "#000000" },
       ],
       gallery: [
         {

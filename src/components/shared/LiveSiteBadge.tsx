@@ -99,7 +99,7 @@ export default function LiveSiteBadge({
         <svg
           viewBox="0 0 24 24"
           fill="none"
-          className="h-7 w-7 transition-transform duration-500 ease-reveal group-hover:translate-x-1 group-hover:-translate-y-1"
+          className="h-7 w-7 text-white mix-blend-difference transition-transform duration-500 ease-reveal group-hover:translate-x-1 group-hover:-translate-y-1"
           aria-hidden="true"
         >
           <path
