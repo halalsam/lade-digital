@@ -43,7 +43,7 @@ export default function AboutSummary() {
           <div className="flex-1">
             <div className="max-w-[500px] space-y-4 text-xl leading-snug tracking-apple-body md:space-y-6 md:text-2xl">
               <p>
-                Since 2010, we have been helping our clients find exceptional
+                Since 2026, we have been helping our clients find exceptional
                 solutions for their businesses, creating memorable websites and
                 digital products.
               </p>

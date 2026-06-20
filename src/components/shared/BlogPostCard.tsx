@@ -1,7 +1,5 @@
 import Link from "@/components/transition/TransitionLink";
-import MediaFrame from "./MediaFrame";
 import { formatDate, type BlogPost } from "@/lib/blog";
-import { gradientFor } from "@/lib/gradient";
 
 type BlogPostCardProps = {
   post: BlogPost;
@@ -31,13 +29,6 @@ export default function BlogPostCard({
             : "grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-16"
           }`}
       >
-        <MediaFrame aspect="wide">
-          <div
-            className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-            style={{ background: gradientFor(post.slug) }}
-          />
-        </MediaFrame>
-
         <div className={isGrid ? "flex flex-1 flex-col items-start" : ""}>
           <span
             className={`inline-block rounded-full border ${chipBorder} uppercase tracking-wide font-medium ${isGrid ? "mb-4 px-3 py-1.5 text-xs" : "px-3 py-1.5 text-sm"

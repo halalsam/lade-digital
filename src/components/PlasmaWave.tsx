@@ -138,16 +138,23 @@ export default function PlasmaWave(props: PlasmaWaveProps) {
     const ctn = containerRef.current;
     if (!ctn) return;
 
-    const renderer = new Renderer({
-      alpha: true,
-      dpr: Math.min(window.devicePixelRatio, 1.5),
-      antialias: false,
-      depth: false,
-      stencil: false,
-      premultipliedAlpha: false,
-      preserveDrawingBuffer: false,
-      powerPreference: 'high-performance'
-    });
+    // WebGL may be unavailable (e.g. headless/older devices). Fail soft: skip
+    // the animated background rather than throwing and breaking the page.
+    let renderer: Renderer;
+    try {
+      renderer = new Renderer({
+        alpha: true,
+        dpr: Math.min(window.devicePixelRatio, 1.5),
+        antialias: false,
+        depth: false,
+        stencil: false,
+        premultipliedAlpha: false,
+        preserveDrawingBuffer: false,
+        powerPreference: 'high-performance'
+      });
+    } catch {
+      return;
+    }
 
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);

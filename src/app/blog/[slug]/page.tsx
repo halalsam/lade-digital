@@ -7,12 +7,10 @@ import rehypePrettyCode, {
 import Navbar from "@/components/shared/Navbar";
 import CtaFooter from "@/components/shared/CtaFooter";
 import RevealText from "@/components/shared/RevealText";
-import Reveal from "@/components/shared/Reveal";
 import CodeBlock from "@/components/blog/CodeBlock";
 import Figure from "@/components/blog/Figure";
 import Link from "@/components/transition/TransitionLink";
 import { getPost, getPostSlugs, formatDate } from "@/lib/blog";
-import { gradientFor } from "@/lib/gradient";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 type Params = { slug: string };
@@ -131,8 +129,7 @@ export default async function BlogPostPage({
   const post = await getPost(slug);
   if (!post) notFound();
 
-  // JSON-LD Article schema → eligibility for rich results in search. Uses the
-  // gradient cover as the image (absolute URLs required by schema.org).
+  // JSON-LD Article schema → eligibility for rich results in search.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -179,13 +176,6 @@ export default async function BlogPostPage({
               {formatDate(post.date)}
               {post.author ? ` · ${post.author}` : ""}
             </p>
-
-            <Reveal className="mt-12 block">
-              <div
-                className="aspect-video w-full overflow-hidden rounded-media"
-                style={{ background: gradientFor(post.slug) }}
-              />
-            </Reveal>
 
             <div className="mt-16">
               <MDXRemote
