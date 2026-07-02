@@ -80,7 +80,7 @@ export default function Showreel() {
               playsInline
               preload="auto"
             >
-              <source src="/video/video.mp4" type="video/mp4" />
+              <source src="/video/ribbon.gif" type="video/mp4" />
             </video>
           </button>
         </RevealScale>
