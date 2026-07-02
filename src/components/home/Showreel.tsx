@@ -72,16 +72,11 @@ export default function Showreel() {
             className="group relative block aspect-[1360/725] w-full overflow-hidden rounded-media"
           >
             <div className="absolute inset-0 animate-[idea-pan_18s_ease-in-out_infinite] bg-[length:200%_200%] bg-gradient-to-br from-neutral-700 via-neutral-900 to-black" />
-            <video
+            <img
               className="absolute inset-0 h-full w-full scale-105 object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-            >
-              <source src="/video/ribbon.gif" type="video/mp4" />
-            </video>
+              src="/video/ribbon.gif"
+              alt=""
+            />
           </button>
         </RevealScale>
       </Container>
