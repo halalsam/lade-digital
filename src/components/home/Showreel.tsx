@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import RevealScale from "../shared/RevealScale";
 import Container from "../shared/Container";
 import { useCursor } from "../cursor/CursorProvider";
+import LiquidRibbon from "../anim/LiquidRibbon";
 
 // The play glyph shown inside the follower cursor while hovering the reel. It
 // rides the cursor's built-in directional skew (the .cb-cursor-inner is what
@@ -71,12 +72,7 @@ export default function Showreel() {
             aria-label="Play showreel"
             className="group relative block aspect-[1360/725] w-full overflow-hidden rounded-media"
           >
-            <div className="absolute inset-0 animate-[idea-pan_18s_ease-in-out_infinite] bg-[length:200%_200%] bg-gradient-to-br from-neutral-700 via-neutral-900 to-black" />
-            <img
-              className="absolute inset-0 h-full w-full scale-105 object-cover"
-              src="/video/ribbon.gif"
-              alt=""
-            />
+            <LiquidRibbon className="absolute inset-0 h-full w-full" />
           </button>
         </RevealScale>
       </Container>
