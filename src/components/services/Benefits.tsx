@@ -12,7 +12,7 @@ const BENEFITS = [
   {
     icon: <IconCompass />,
     label: "Time zones ain’t no thing",
-    body: "Wherever you are in the world, you’ll feel like we’re right around the corner. With 12 years of experience, our business processes are seamless and time differences don’t matter.",
+    body: "Wherever you are in the world, you’ll feel like we’re right around the corner. With 4 years of experience, our business processes are seamless and time differences don’t matter.",
   },
   {
     icon: <IconStar />,
