@@ -1,9 +1,7 @@
 import RevealScale from "../shared/RevealScale";
 import Container from "../shared/Container";
 
-// Full-width rounded media block. Drop your looping reel at
-// /public/assets/services/main.mp4 and it will play automatically; until then
-// the gradient + grain placeholder keeps the layout intentional, not broken.
+// Full-width rounded media block showing the looping ribbon gif.
 export default function VideoShowcase() {
   return (
     <section className="relative z-10">
@@ -19,17 +17,11 @@ export default function VideoShowcase() {
             }}
           />
 
-          <video
+          <img
             className="absolute inset-0 h-full w-full scale-105 object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster=""
-          >
-            <source src="/assets/services/main.mp4" type="video/mp4" />
-          </video>
+            src="/video/ribbon.gif"
+            alt=""
+          />
         </RevealScale>
       </Container>
     </section>
