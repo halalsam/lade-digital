@@ -1,7 +1,14 @@
-// The wordmark, recreated from the source SVG paths. `currentColor` lets it
-// invert automatically on dark sections (footer) vs. light (navbar).
+import Image from "next/image";
+
 export default function Logo({ className = "" }: { className?: string }) {
   return (
-   <p className="font-semibold text-2xl">Lade Digital</p>
+    <Image
+      src="/logo/logo.png"
+      alt="Lade Digital"
+      width={40}
+      height={40}
+      className={className}
+      priority
+    />
   );
 }

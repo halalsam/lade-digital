@@ -4,6 +4,7 @@ import Link from "@/components/transition/TransitionLink";
 import PillButton from "./PillButton";
 import Container from "./Container";
 import PlasmaWave from "@/components/PlasmaWave";
+import Logo from "./Logo";
 
 const FOOTER_LINKS = [
   { label: "Services", href: "/services",  external: false },
@@ -105,7 +106,8 @@ export default function CtaFooter() {
 
         {/* Bottom bar */}
         <div className="mt-16 flex flex-col-reverse items-start justify-between gap-8 md:flex-row md:items-center">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            <Logo className="h-8 w-auto rounded-md" />
             <span className="text-base opacity-50">2026, Lade</span>
           </div>
 
