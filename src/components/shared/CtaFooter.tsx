@@ -107,7 +107,7 @@ export default function CtaFooter() {
         {/* Bottom bar */}
         <div className="mt-16 flex flex-col-reverse items-start justify-between gap-8 md:flex-row md:items-center">
           <div className="flex items-center gap-4">
-            <Logo className="h-8 w-auto rounded-md" />
+            <Logo className="h-10 w-auto" />
             <span className="text-base opacity-50">2026, Lade</span>
           </div>
 

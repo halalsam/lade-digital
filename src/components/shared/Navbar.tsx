@@ -107,7 +107,7 @@ export default function Navbar({ duration, ease }: NavbarProps = {}) {
             className="nav-reveal relative z-50 text-ink"
             style={{ "--nav-delay": "0.05s" } as CSSProperties}
           >
-            <Logo className="h-5 w-auto" />
+            <Logo className="h-10 w-auto" />
           </Link>
 
           {/* Desktop navigation */}
