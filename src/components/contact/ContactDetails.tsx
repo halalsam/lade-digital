@@ -53,25 +53,7 @@ export default function ContactDetails() {
             ))}
           </div>
 
-          {/* Socials */}
-          <div className="lg:justify-self-end lg:text-right">
-            <span className="mb-6 block text-base uppercase opacity-50">
-              Follow us
-            </span>
-            <div className="flex flex-wrap gap-3 lg:justify-end">
-              {SOCIALS.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener"
-                  className="rounded-full border border-ink/20 px-5 py-3 text-lg transition-colors hover:bg-ink hover:text-paper"
-                >
-                  {social.name}
-                </a>
-              ))}
-            </div>
-          </div>
+         
         </div>
       </Container>
     </section>
